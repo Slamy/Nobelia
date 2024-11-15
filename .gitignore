@@ -1,3 +1,5 @@
 src/build.h
-build/NOBELIA
+build
 link.txt
+out
+disk
