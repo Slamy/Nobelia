@@ -1,3 +1,4 @@
-MOUNT D D:\Development\Git\cdi-sdk\TOOLS\Master
+MOUNT D cdi-sdk/TOOLS/Master
+MOUNT E build
 PATH %PATH%;D:\
-vcdmastr.exe build.cd > master.log
+master.exe build.cd > E:MASTER.LOG

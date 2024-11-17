@@ -1,5 +1,55 @@
 # Nobelia
 
+## Compiling under Linux
+
+### Prerequisites
+
+Clone https://github.com/TwBurn/cdi-sdk and have it mounted as D: drive in winecfg.
+
+Get [tocs12.zip](http://www.icdia.co.uk/sw_pc/vcdtools.html) if you want to convert
+the resulting image to CUE/BIN for usage with MAME and MiSTer.
+It is expected to have tocsplit.exe in the root of this project.
+
+### Compiling
+
+	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link
+
+### Cleanup
+
+	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe clean
+
+### Mastering into CDI/TOC file
+
+	dosbox master.bat -exit
+
+The resulting image can be loaded into cdiemu
+
+### Conversion into CUE/BIN
+
+You need to do that to use the image in MAME. Keep in mind that the tool
+requires mouse control.
+
+	wine tocsplit.exe
+
+### Compiling, mastering and CUE/BIN conversion in one step
+
+This approach is crude and might not work on all machines.
+It makes use of xdotool to automate button presses.
+
+	./make_image.sh 
+
+### Start image on MAME
+
+	mame cdimono1 -cdrom disk/NOBELIA.CUE
+
+### Start image on cdiemu
+
+	wine wcdiemu-v053b7.exe disk/NOBELIA.CDI
+
+### Copy to MiSTer
+
+	scp disk/NOBELIA.CUE disk/NOBELIA.BIN root@mister:/media/fat/games/CD-i
+
 ## CD-i Game by Jeffrey Janssen - nobelia@nmotion.nl
 
 This is the Open Source version of Nobelia. 
