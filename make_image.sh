@@ -15,6 +15,7 @@ time WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link
 time SDL_VIDEODRIVER=dummy dosbox -conf dosbox.conf master.bat -exit
 
 # The error codes are not available on MSDOS. We check for the log to be sure
+cat build/MASTER.LOG
 grep "End   generation of album" build/MASTER.LOG
 
 # Convert the CDI/TOC files into CUE/BIN using mouse automation
@@ -38,5 +39,7 @@ xdotool mousemove --sync -w $WID 500 340
 xdotool click -w $WID 1
 
 ls -lh disk/*.CUE disk/*.BIN
+
+sed -i -e "s/FILE .*\\\\/FILE /" disk/*.CUE
 
 echo " --- Done! ---"
