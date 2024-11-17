@@ -3,3 +3,10 @@ build
 link.txt
 out
 disk
+MASTER.LOG
+/README.TXT
+/tocsplit.exe
+/tocsplit.ini
+/vcddia1.GIF
+/howtovcd.doc
+settings.json
