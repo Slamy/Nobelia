@@ -36,7 +36,7 @@ rebuild: clean cd
 
 link: $(FILES)
 	$(LD) -z=link.txt
-	fixmod -uo=0.0 $(BUILD)/$(NAME)
+	fixmod -ua=80ff $(BUILD)/$(NAME)
 
 $(OUTPUT)/audio.r : $(SRC)/audio.c
 	$(CC) $(CCFLAGS) -O=2 $(SRC)/audio.c

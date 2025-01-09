@@ -194,13 +194,12 @@ int sigCode;
 #define I_BUTTON2 0x02
 #define I_BUTTON3 0x04
 #define I_BUTTON_ANY (I_BUTTON1 | I_BUTTON2 | I_BUTTON3)
-#define I_LEFT    0x10
-#define I_RIGHT   0x20
-#define I_UP      0x40
-#define I_DOWN    0x80
+#define I_LEFT 0x10
+#define I_RIGHT 0x20
+#define I_UP 0x40
+#define I_DOWN 0x80
 #define I_SIGNAL1 0x0D00
 #define I_SIGNAL2 0x0D01
-
 
 int main(argc, argv)
 int argc;
@@ -209,9 +208,11 @@ char *argv[];
 	FILE *file;
 	int bytes;
 	int wait;
-	int waitamount=50;
+	int framecnt = 0;
+	int waitamount = 50;
+	u_long atten;
 
-u_short input;
+	u_short input;
 
 #ifdef DEBUG
 	printf("Hello World!\n");
@@ -249,24 +250,36 @@ u_short input;
 			{
 			}; /* Wait for SIG_BLANK */
 			frameDone = 0;
-
 		}
 
 		PlaySound(0);
 
 		input = readInput1();
 
-		if ((input & I_BUTTON1) && waitamount>0)
+		framecnt++;
+
+		if ((input & I_BUTTON1))
 		{
-			waitamount--;
+			/* Should mute */
+			printf("1\n");
+			sc_atten(Sound, 0x42317f31);
 		}
-
-		if ((input & I_BUTTON2) && waitamount<100)
+		else if ((input & I_BUTTON2))
 		{
-			waitamount++;
+			printf("2\n");
+			sc_atten(Sound, 0x80008000);
 		}
-
-
+		else if ((input & I_BUTTON_ANY))
+		{
+			printf("0\n");
+			sc_atten(Sound, 0x0);
+		}
+		else
+		{
+			printf("3\n");
+			/* Set maximum volume in left-left and right-right channels */
+			sc_atten(Sound, 0x00800080);
+		}
 	}
 
 	exit(0);

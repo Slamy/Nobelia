@@ -14,6 +14,10 @@ It is expected to have tocsplit.exe in the root of this project.
 
 	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link
 
+### Starting via serial stub
+
+	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/nobelia -e
+
 ### Cleanup
 
 	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe clean
