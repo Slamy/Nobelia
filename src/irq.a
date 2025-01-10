@@ -1,0 +1,30 @@
+ nam derp9000
+ ttl herpusderpus9000
+
+edition set 1
+
+ psect io68360_a,0,0,edition,0,0
+
+a6_value:
+    dc.l 0
+
+store_a6:
+    lea a6_value(pc),a0
+    move.l a6,(a0)
+    rts
+
+_CDIC_IRQ:
+	move.l a6,-(sp)
+	move.l a6_value(pc),a6
+	move.l d0,-(sp)
+
+	move.w $303FF4,d0 ; clear flags on ABUFD
+	move.w $303FF6,d0 ; clear flags on XBUF
+	move.b #1,got_it(a6)
+
+	move.l (sp)+,d0
+	move.l (sp)+,a6
+
+    rte
+    
+
