@@ -34,8 +34,8 @@ void _CDIC_IRQ();
 
 /*int d0_backup;*/
 char got_it;
-unsigned char toc_buffer[100][12];
-int bufpos;
+
+unsigned short buffer[12];
 
 void store_a6();
 int main(argc, argv)
@@ -47,7 +47,7 @@ char *argv[];
 	int framecnt = 0;
 	u_long atten;
 	unsigned short *subcode;
-	int i, j;
+	int i;
 #ifdef DEBUG
 	printf("Hello World: %x\n", *((unsigned short *)0x303FFC));
 #endif
@@ -64,42 +64,36 @@ char *argv[];
 	}
 
 	*((unsigned short *)0x303FFE) = 0;		   /* Deactivate everything */
-	*((unsigned long *)0x303C02) = 0x01000000; /* Timecode */
+	*((unsigned long *)0x303C02) = 0x00000000; /* Timecode */
 #if 0
 	*((unsigned short *)0x303C00) = 0x28;	   /* Play CDDA command */
 #else
-	*((unsigned short *)0x303C00) = 0x27; /* Request TOC */
+	*((unsigned short *)0x303C00) = 0x27;	   /* Request TOC */
 
 #endif
 	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
 
-	bufpos = 0;
-	while (bufpos < 90)
+	for (;;)
 	{
 		if (got_it)
 		{
 			got_it = 0;
 
 			subcode = (*((unsigned short *)0x303FFe) & 1) ? 0x301324 : 0x300924;
+			memcpy(buffer,subcode,sizeof(buffer));
+
 			for (i = 0; i < 12; i++)
 			{
-				/*printf(" %02x", subcode[i] & 0xff);*/
-				toc_buffer[bufpos][i] = subcode[i] & 0xff;
+				printf(" %02x", buffer[i] & 0xff);
 			}
 
-			printf("%x\n", subcode[11]);
-			bufpos++;
+			if (got_it)
+			{
+				/* Missed one? discard the next and wait for the next sector */
+				got_it = 0;
+			}
+			printf("\n");
 		}
-	}
-
-	for (i = 0; i < bufpos; i++)
-	{
-		printf("%3d ", i);
-		for (j = 0; j < 12; j++)
-		{
-			printf(" %02x", toc_buffer[i][j]);
-		}
-		printf("\n");
 	}
 
 	exit(0);
