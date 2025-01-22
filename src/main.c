@@ -37,6 +37,12 @@ char got_it;
 
 unsigned short buffer[12];
 
+unsigned short abuf;
+unsigned short xbuf;
+unsigned short dmactl;
+unsigned short audctl;
+unsigned short dbuf;
+
 void store_a6();
 int main(argc, argv)
 int argc;
@@ -56,43 +62,67 @@ char *argv[];
 	*((unsigned long *)0x200) = _CDIC_IRQ;
 	*((unsigned short *)0x303FFC) = 0x2480;
 
-	while (framecnt < 4)
+	while (framecnt < 2)
 	{
 		printf("%d %x %d\n", framecnt, *((unsigned short *)0x303FFe), sizeof(int));
 		sleep(1);
 		framecnt++;
 	}
+	*((unsigned short *)0x303FF4) = 0;
+	*((unsigned short *)0x303FF6) = 0;
+	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
 
-	*((unsigned short *)0x303FFE) = 0;		   /* Deactivate everything */
-	*((unsigned long *)0x303C02) = 0x00000000; /* Timecode */
+	*((unsigned short *)0x303C00) = 0x24;
+	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
+	sleep(1);
+
+	*((unsigned short *)0x303C06) = 0x0100;
+	*((unsigned long *)0x303C08) = 0x8000;
+	*((unsigned short *)0x303C0C) = 0x8000;
+
+	*((unsigned long *)0x303C02) = 0x00471800; /* Timecode */
 #if 0
-	*((unsigned short *)0x303C00) = 0x28;	   /* Play CDDA command */
-#else
-	*((unsigned short *)0x303C00) = 0x27;	   /* Request TOC */
-
+	*((unsigned short *)0x303C00) = 0x28; /* Play CDDA command */
+	*((unsigned short *)0x303C00) = 0x27; /* Request TOC */
 #endif
+	*((unsigned short *)0x303C00) = 0x2a;
+
 	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
 
+	*((unsigned char *)310004) = 0x83;
+
+	*((unsigned char *)310004) = 0xc0;
+	*((unsigned char *)310004) = 0x0c;
+	*((unsigned char *)310004) = 0x0c;
+	*((unsigned char *)310004) = 0x0c;
+	*((unsigned char *)310004) = 0x0c;
+
+#if 0
+7fff 7fff 3ffe d7fe 4825
+7fff 7fff 3ffe d7fe 4824
+7fff 7fff 3ffe d7fe 4825
+7fff 7fff 3ffe d7fe 4824
+7fff 7fff 3ffe d7fe 4825
+#endif
 	for (;;)
 	{
 		if (got_it)
 		{
 			got_it = 0;
 
-			subcode = (*((unsigned short *)0x303FFe) & 1) ? 0x301324 : 0x300924;
-			memcpy(buffer,subcode,sizeof(buffer));
+			abuf = *((unsigned short *)0x303FF4);
+			xbuf = *((unsigned short *)0x303FF6);
+			dmactl = *((unsigned short *)0x303FF8);
+			audctl = *((unsigned short *)0x303FFA);
+			dbuf = *((unsigned short *)0x303FFE);
 
-			for (i = 0; i < 12; i++)
-			{
-				printf(" %02x", buffer[i] & 0xff);
-			}
+			printf("%x %x %x %x %x\n", abuf, xbuf, dmactl, audctl, dbuf);
 
 			if (got_it)
 			{
 				/* Missed one? discard the next and wait for the next sector */
 				got_it = 0;
 			}
-			printf("\n");
 		}
 	}
 

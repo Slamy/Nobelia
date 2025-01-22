@@ -16,7 +16,7 @@ It is expected to have tocsplit.exe in the root of this project.
 
 ### Starting via serial stub
 
-	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/nobelia -e
+	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/nobelia -e && minicom -D /dev/ttyUSB0 -b 9600
 
 ### Cleanup
 
