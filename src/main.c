@@ -76,6 +76,11 @@ char *argv[];
 	*((unsigned short *)0x303C00) = 0x24;
 	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
 	sleep(1);
+	got_it = 0;
+
+	*((unsigned short *)0x303FF4) = 0;
+	*((unsigned short *)0x303FF6) = 0;
+	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
 
 	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
 	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
@@ -83,6 +88,7 @@ char *argv[];
 	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
 	*((unsigned short *)0x303C00) = 0x2a;	   /* Read Mode 2 */
 	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
+	*((unsigned short *)0x303FFA) = 0x800;
 
 	bufpos = 0;
 	while (bufpos < 90)
@@ -115,6 +121,8 @@ char *argv[];
 			reg_buffer[bufpos][12] = dmactl;
 			reg_buffer[bufpos][13] = audctl;
 			reg_buffer[bufpos][14] = dbuf;
+
+
 			bufpos++;
 		}
 	}
