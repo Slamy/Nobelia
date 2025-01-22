@@ -35,7 +35,8 @@ void _CDIC_IRQ();
 /*int d0_backup;*/
 char got_it;
 
-unsigned short buffer[12];
+unsigned short reg_buffer[100][15];
+int bufpos;
 
 unsigned short abuf;
 unsigned short xbuf;
@@ -53,7 +54,7 @@ char *argv[];
 	int framecnt = 0;
 	u_long atten;
 	unsigned short *subcode;
-	int i;
+	int i, j;
 #ifdef DEBUG
 	printf("Hello World: %x\n", *((unsigned short *)0x303FFC));
 #endif
@@ -76,54 +77,56 @@ char *argv[];
 	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
 	sleep(1);
 
-	*((unsigned short *)0x303C06) = 0x0100;
-	*((unsigned long *)0x303C08) = 0x8000;
-	*((unsigned short *)0x303C0C) = 0x8000;
+	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
+	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
+	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
+	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
+	*((unsigned short *)0x303C00) = 0x2a;	   /* Read Mode 2 */
+	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
 
-	*((unsigned long *)0x303C02) = 0x00471800; /* Timecode */
-#if 0
-	*((unsigned short *)0x303C00) = 0x28; /* Play CDDA command */
-	*((unsigned short *)0x303C00) = 0x27; /* Request TOC */
-#endif
-	*((unsigned short *)0x303C00) = 0x2a;
-
-	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
-
-	*((unsigned char *)310004) = 0x83;
-
-	*((unsigned char *)310004) = 0xc0;
-	*((unsigned char *)310004) = 0x0c;
-	*((unsigned char *)310004) = 0x0c;
-	*((unsigned char *)310004) = 0x0c;
-	*((unsigned char *)310004) = 0x0c;
-
-#if 0
-7fff 7fff 3ffe d7fe 4825
-7fff 7fff 3ffe d7fe 4824
-7fff 7fff 3ffe d7fe 4825
-7fff 7fff 3ffe d7fe 4824
-7fff 7fff 3ffe d7fe 4825
-#endif
-	for (;;)
+	bufpos = 0;
+	while (bufpos < 90)
 	{
 		if (got_it)
 		{
 			got_it = 0;
+			/* subcode = ((*((unsigned short *)0x303FFE) & 0x7) * 0xA00) | 0x300000; */
 
 			abuf = *((unsigned short *)0x303FF4);
 			xbuf = *((unsigned short *)0x303FF6);
 			dmactl = *((unsigned short *)0x303FF8);
 			audctl = *((unsigned short *)0x303FFA);
 			dbuf = *((unsigned short *)0x303FFE);
+			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
+			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
+			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
+			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
 
-			printf("%x %x %x %x %x\n", abuf, xbuf, dmactl, audctl, dbuf);
+			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
+			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
+			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
+			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
 
-			if (got_it)
-			{
-				/* Missed one? discard the next and wait for the next sector */
-				got_it = 0;
-			}
+			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
+			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
+			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
+			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
+
+			reg_buffer[bufpos][12] = dmactl;
+			reg_buffer[bufpos][13] = audctl;
+			reg_buffer[bufpos][14] = dbuf;
+			bufpos++;
 		}
+	}
+
+	for (i = 0; i < bufpos; i++)
+	{
+		printf("%3d ", i);
+		for (j = 0; j < 15; j++)
+		{
+			printf(" %02x", reg_buffer[i][j]);
+		}
+		printf("\n");
 	}
 
 	exit(0);
