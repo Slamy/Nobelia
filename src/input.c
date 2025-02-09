@@ -3,13 +3,13 @@
 #include "input.h"
 
 #define PT_CENTER 256
-#define DEADZONE 1
+#define PT_DELAY 2
 
-int input1Path, input2Path;
-u_short input1State, input2State;
+#define clamp(value, limit) (value < -limit ? -limit : (value > limit ? limit : value))
 
-int dx1, dx2;
-int dy1, dy2;
+int inputPath1, inputPath2;
+
+InputRelative ipResult1, ipResult2;
 
 void initInput()
 {
@@ -17,148 +17,100 @@ void initInput()
 
 	devName = (u_char*)csd_devname(DT_PTR, 1);
 	if (devName) {
-		input1Path = open(devName, UPDAT_);
+		inputPath1 = open(devName, UPDAT_);
+
 		free(devName);
 
-		if (input1Path >= 0) {
-			pt_org(input1Path, 0, 0);
+		if (inputPath1 >= 0) {
+			pt_org(inputPath1, 0, 0);
 		}
 	}
 
 	devName = (u_char*)csd_devname(DT_PTR, 2);
 	if (devName) {
-		input2Path = open(devName, UPDAT_);
+		inputPath2 = open(devName, UPDAT_);
+
 		free(devName);
 
-		if (input2Path >= 0) {
-			pt_org(input2Path, 0, 0);
+		if (inputPath2 >= 0) {
+			pt_org(inputPath2, 0, 0);
 		}
 	}
 
-	readInput();
-	readInput();
+	clearInput();
+
 }
 
 void closeInput()
 {
-	if (input1Path >= 0) {
-		close(input1Path);
-		input1Path = 0;
+	if (inputPath1 > 0) {
+		close(inputPath1);
+		inputPath1 = 0;
 	}
-	if (input2Path >= 0) {
-		close(input2Path);
-		input2Path = 0;
+	if (inputPath2 > 0) {
+		close(inputPath2);
+		inputPath2 = 0;
 	}
 }
 
-
-
-u_short readInput1() {
+void handleInput(path, result)
+	int path;
+	InputRelative *result;
+{
 	int x, y, buttons;
-	int dx, dy;
-	u_short inputState = 0;
 
-	if (input1Path >= 0) {
-		pt_coord(input1Path, &buttons, &x, &y);
-		buttons &= 3;
-		if (buttons == 3) {
-			inputState |= I_BUTTON3;
-		}
-		else {
-			inputState |= buttons;
-		}
+	if (path > 0) {
+		pt_coord(path, &buttons, &x, &y);
 		
+		result->Buttons = buttons;
+
 		x = x - PT_CENTER;
 		y = y - PT_CENTER;
 
-		dx = dx1 + x;
-		dy = dy1 + y;
+		x = clamp(x, 64);
+		y = clamp(y, 64);
 
-		/* Handle coordinate wrap-around */
-				
-		if (dx < -DEADZONE) inputState |= I_LEFT;
-		if (dx >  DEADZONE) inputState |= I_RIGHT;
-		if (dy < -DEADZONE) inputState |= I_UP;
-		if (dy >  DEADZONE) inputState |= I_DOWN;
-
-		dx1 = x;
-		dy1 = y;
-
-		if (x || y) pt_pos(input1Path, PT_CENTER, PT_CENTER);
-
-		return inputState;
-	}
-	else {
-		return 0xFF;
-	}
-}
-
-u_short readInput2() {
-	int x, y, buttons;
-	int dx, dy;
-	u_short inputState = 0;
-
-	if (input2Path >= 0) {
-		pt_coord(input2Path, &buttons, &x, &y);
-		buttons &= 3;
-		if (buttons == 3) {
-			inputState |= I_BUTTON3;
+		if (x || y) {
+			result->DeltaX = x;
+			result->DeltaY = y;
+			result->Delay  = 0;
+			pt_pos(path, PT_CENTER, PT_CENTER);
 		}
-		else {
-			inputState |= buttons;
+		else if ((result->Delay++) >= PT_DELAY) {
+			result->DeltaX = 0;
+			result->DeltaY = 0;
+			result->Delay  = 0;
 		}
-		
-		x = x - PT_CENTER; /* Discard last bits to ignore very small movement */
-		y = y - PT_CENTER;
-
-		dx = dx2 + x;
-		dy = dy2 + y;
-
-		/* Handle coordinate wrap-around */
-				
-		if (dx < -DEADZONE) inputState |= I_LEFT;
-		if (dx >  DEADZONE) inputState |= I_RIGHT;
-		if (dy < -DEADZONE) inputState |= I_UP;
-		if (dy >  DEADZONE) inputState |= I_DOWN;
-
-		dx2 = x;
-		dy2 = y;
-
-		if (x || y) pt_pos(input2Path, PT_CENTER, PT_CENTER);
-
-		return inputState;
-	}
-	else {
-		return 0xFF;
 	}
 }
 
-u_int readInput()
-{
-	u_int inputState = readInput2();
-	inputState = (inputState << 8) | readInput1();
-	return inputState;
+
+void updateInput1() {
+	handleInput(inputPath1, &ipResult1);
 }
 
-void setInputSignals()
-{
-	if (input1Path) pt_ssig(input1Path, I_SIGNAL1);
-	if (input2Path) pt_ssig(input2Path, I_SIGNAL2);
+void updateInput2() {
+	handleInput(inputPath2, &ipResult2);
 }
 
-void handleInputSignal(signal)
-	int signal;
+void updateInput()
 {
-	u_short curState;
+	updateInput1();
+	updateInput2();
+}
+
+void clearInput() {
+	/* Clear buttons first, these will be set to their actual values by updateInput() */
+	ipResult1.Buttons = 0;
+	ipResult2.Buttons = 0;
+
+	updateInput();
 	
-	if (signal == I_SIGNAL1) {
-		curState = readInput1();
-		input1State = (input1State & 0xF0) | curState;
-		pt_ssig(input1Path, signal);
-	}
-	else if (signal == I_SIGNAL2) {
-		curState = readInput2();
-		input2State = (input2State & 0xF0) | curState;
-		pt_ssig(input2Path, signal);
-	}
+	ipResult1.DeltaX  = 0;
+	ipResult1.DeltaY  = 0;
+	ipResult1.Delay   = 0;
+
+	ipResult2.DeltaX  = 0;
+	ipResult2.DeltaY  = 0;
+	ipResult2.Delay   = 0;
 }

@@ -1,206 +1,168 @@
-#include <cdfm.h>
+#define NODEVELOP
+
 #include <csd.h>
-#include <modes.h>
 #include <sysio.h>
 #include <ucm.h>
-#include <stdio.h>
-#include <memory.h>
+#include <events.h>
+
+#include <setsys.h>
+
+#include "input.h"
 #include "video.h"
 #include "graphics.h"
 
-#define BYTE unsigned char
-#define WORD unsigned short
-#define DWORD unsigned int
+#define LCT_ROW_START 2
 
-#define NULL 0
+#define cl_row(i) (((i >> 2) << 1) + LCT_ROW_START)
+#define cl_col(i) ((i & 3) + 1)
 
-/* Sounds */
-#define MAXSOUNDS 4
+#define cl_white(i) cp_clut(i, 255, 255, 255)
+#define cl_blue(i)  cp_clut(i,  11,  94, 216)
+#define cl_red(i)   cp_clut(i, 180,  32,  42)
+#define cl_dgray(i) cp_clut(i,  38,  43,  68)
+#define cl_lgray(i) cp_clut(i, 192, 203, 220)
+#define cl_black(i) cp_clut(i,   0,   0,   0)
 
-#define DEBUG
+#define cl_wrli(i, c) dc_wrli(videoPath, lctB, cl_row(i), cl_col(i), c)
 
-#define I_BUTTON1 0x01
-#define I_BUTTON2 0x02
-#define I_BUTTON3 0x04
-#define I_BUTTON_ANY (I_BUTTON1 | I_BUTTON2 | I_BUTTON3)
-#define I_LEFT 0x10
-#define I_RIGHT 0x20
-#define I_UP 0x40
-#define I_DOWN 0x80
-#define I_SIGNAL1 0x0D00
-#define I_SIGNAL2 0x0D01
+#define wr_white(i) cl_wrli(i, cl_white(i))
+#define wr_blue(i)  cl_wrli(i, cl_blue(i))
+#define wr_red(i)   cl_wrli(i, cl_red(i))
+#define wr_dgray(i) cl_wrli(i, cl_dgray(i))
 
-void _CDIC_IRQ();
+/* Origin positions of crosses */
+#define ORG1 (163 * SCREEN_WIDTH + 89)
+#define ORG2 (163 * SCREEN_WIDTH + 279)
 
-/*int d0_backup;*/
-char got_it;
+#define dpos(x, y) (y * SCREEN_WIDTH + x)
 
-unsigned short reg_buffer[100][15];
-int bufpos;
-
-unsigned short abuf;
-unsigned short xbuf;
-unsigned short dmactl;
-unsigned short audctl;
-unsigned short dbuf;
-
-void store_a6();
-int main(argc, argv)
-int argc;
-char *argv[];
+void drawCross(pos, col)
+	int pos;
+	register u_char col;
 {
-	int bytes;
-	int wait;
-	int framecnt = 0;
-	u_long atten;
-	unsigned short *subcode;
-	int i, j;
-#ifdef DEBUG
-	printf("Hello World: %x\n", *((unsigned short *)0x303FFC));
-#endif
+	register u_char *drw = paCursor + pos;
 
-	store_a6();
-	*((unsigned long *)0x200) = _CDIC_IRQ;
-	*((unsigned short *)0x303FFC) = 0x2480;
+	drw += 7;                  (*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  3);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  4);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  6);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH - 12);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH - 16);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH - 12);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  6);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  4);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  4);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  3);(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
+	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
+}
 
-	while (framecnt < 2)
-	{
-		printf("%d %x %d\n", framecnt, *((unsigned short *)0x303FFe), sizeof(int));
-		sleep(1);
-		framecnt++;
-	}
-	*((unsigned short *)0x303FF4) = 0;
-	*((unsigned short *)0x303FF6) = 0;
-	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
-
-	*((unsigned short *)0x303C00) = 0x24;
-	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
-	sleep(1);
-	got_it = 0;
-
-	*((unsigned short *)0x303FF4) = 0;
-	*((unsigned short *)0x303FF6) = 0;
-	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
-
-	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
-	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
-	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
-	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
-	*((unsigned short *)0x303C00) = 0x2a;	   /* Read Mode 2 */
-	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
-	*((unsigned short *)0x303FFA) = 0x800;
-
-	bufpos = 0;
-	while (bufpos < 20)
-	{
-		if (got_it)
-		{
-			got_it = 0;
-			/* subcode = ((*((unsigned short *)0x303FFE) & 0x7) * 0xA00) | 0x300000; */
-
-			abuf = *((unsigned short *)0x303FF4);
-			xbuf = *((unsigned short *)0x303FF6);
-			dmactl = *((unsigned short *)0x303FF8);
-			audctl = *((unsigned short *)0x303FFA);
-			dbuf = *((unsigned short *)0x303FFE);
-			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
-			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
-			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
-			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
-
-			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
-			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
-			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
-			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
-
-			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
-			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
-			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
-			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
-
-			reg_buffer[bufpos][12] = dmactl;
-			reg_buffer[bufpos][13] = audctl;
-			reg_buffer[bufpos][14] = dbuf;
-
-
-			bufpos++;
+void drawInput(input, start)
+	InputRelative *input;
+	u_char start;
+{
+	int i;
+	
+	for (i = 0; i < 8; i++) {
+		if (input->Buttons & (1 << i)) {
+			wr_red(start + i);
+		}
+		else {
+			wr_white(start + i);
 		}
 	}
+}
 
 
-	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
-	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
-	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
-	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
-	*((unsigned short *)0x303C00) = 0x2e;	   /* Update */
-	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
-	sleep(1);
-	got_it = 0;
+int oldPos1 = 0, oldPos2 = 0;
+void drawInputs()
+{
+	int newPos1, newPos2;
+	updateInput();
+	drawInput(&ipResult1, 3);
+	drawInput(&ipResult2, 11);
 
-	*((unsigned short *)0x303FF4) = 0;
-	*((unsigned short *)0x303FF6) = 0;
-	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
+	newPos1 = ORG1 + dpos(ipResult1.DeltaX, ipResult1.DeltaY);
+	newPos2 = ORG2 + dpos(ipResult2.DeltaX, ipResult2.DeltaY);
 
-	sleep(1);
-	got_it = 0;
-
-	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
-	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
-	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
-	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
-	*((unsigned short *)0x303C00) = 0x2a;	   /* Read Mode 2 */
-	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
-	*((unsigned short *)0x303FFA) = 0x800;
-
-	bufpos = 0;
-	while (bufpos < 40)
-	{
-		if (got_it)
-		{
-			got_it = 0;
-			/* subcode = ((*((unsigned short *)0x303FFE) & 0x7) * 0xA00) | 0x300000; */
-
-			abuf = *((unsigned short *)0x303FF4);
-			xbuf = *((unsigned short *)0x303FF6);
-			dmactl = *((unsigned short *)0x303FF8);
-			audctl = *((unsigned short *)0x303FFA);
-			dbuf = *((unsigned short *)0x303FFE);
-			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
-			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
-			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
-			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
-
-			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
-			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
-			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
-			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
-
-			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
-			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
-			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
-			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
-
-			reg_buffer[bufpos][12] = dmactl;
-			reg_buffer[bufpos][13] = audctl;
-			reg_buffer[bufpos][14] = dbuf;
-
-
-			bufpos++;
-		}
+	if (inputPath1 && oldPos1 != newPos1) {
+		drawCross(oldPos1, 0);
+		drawCross(newPos1, 30);
+		oldPos1 = newPos1;
 	}
 
+	if (inputPath2 && oldPos2 != newPos2) {
+		drawCross(oldPos2, 0);
+		drawCross(newPos2, 30);
+		oldPos2 = newPos2;
+	}
+}
 
-
-
-	for (i = 0; i < bufpos; i++)
-	{
-		printf("%3d ", i);
-		for (j = 0; j < 15; j++)
-		{
-			printf(" %02x", reg_buffer[i][j]);
+void initProgram() {
+	int i, c;
+	/* Fill 8 rows of SET CLUT BANK in LCT */
+	for (i = 0; i < 8; i++) {
+		dc_wrli(videoPath, lctA, 2 * i + LCT_ROW_START, 0, cp_cbnk(0));
+		dc_wrli(videoPath, lctB, 2 * i + LCT_ROW_START, 0, cp_cbnk(2));
+	}
+	
+	for (i = 0; i < 32; i++) {
+		switch(i) {
+			case 0:  c = cl_black(i); break;
+			case 25: c = cl_lgray(i); break;
+			case 29: c = cl_blue(i);  break;
+			case 30: c = cl_red(i);   break;
+			default: c = cl_white(i); break;
 		}
-		printf("\n");
+
+		dc_wrli(videoPath, lctA, cl_row(i), cl_col(i), c);
+		dc_wrli(videoPath, lctB, cl_row(i), cl_col(i), c);
 	}
 
+	inputPath1 ? wr_blue(1) : wr_dgray(1);
+	inputPath2 ? wr_blue(2) : wr_dgray(2);
+
+	drawInputs();	
+
+	setIcf(ICF_MAX, ICF_MAX);
+}
+
+void initSystem()
+{
+	initVideo();
+	initGraphics();
+	initInput();
+	initProgram();
+}
+
+void closeSystem()
+{
+	closeVideo();
+	closeInput();
+}
+
+void runProgram() {
+	int evId = _ev_link("line_event");
+
+	while(1) {
+		drawInputs();
+
+		_ev_wait(evId, 1, 1); /* Wait for VBLANK */		
+	}
+}
+
+int main(argc, argv)
+	int argc;
+	char* argv[];
+{
+	int res;
+
+	initSystem();
+	runProgram();
+	closeSystem();
 	exit(0);
 }

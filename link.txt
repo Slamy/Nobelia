@@ -3,7 +3,9 @@
 -o=build\nobelia
 D:\OS9\CDI\lib\cstart.r
 out\main.r
-out\irq.r
+out\input.r
+out\video.r
+out\graphics.r
 -l=D:\OS9\CDI\lib\cdi.l
 -l=D:\OS9\CDI\lib\cdisys.l
 -l=D:\OS9\CDI\lib\clib.l
