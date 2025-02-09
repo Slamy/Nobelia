@@ -1,5 +1,5 @@
 #Configuration, name, folders
-NAME    = nobelia
+NAME    = colortst
 OUTPUT  = out
 BUILD   = build
 SRC     = src
@@ -35,9 +35,13 @@ all: link
 
 rebuild: clean cd
 
-link: $(FILES)
-	$(LD) -z=link.txt
-	fixmod -ua=80ff $(BUILD)/$(NAME)
+link_app: $(FILES)
+	$(LD) -z=link.txt -o=build\$(NAME).app -n=play
+	fixmod -ua=80ff $(BUILD)/$(NAME).app
+
+link_cd: $(FILES)
+	$(LD) -z=link.txt -o=build\$(NAME)
+	fixmod -uo=0.0 $(BUILD)/$(NAME)
 
 $(OUTPUT)/irq.r : $(SRC)/irq.a
 	$(AS) $(CCFLAGS) -O=2 $(SRC)/irq.a

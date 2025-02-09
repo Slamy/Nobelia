@@ -103,31 +103,6 @@ void drawInputs()
 }
 
 void initProgram() {
-	int i, c;
-	/* Fill 8 rows of SET CLUT BANK in LCT */
-	for (i = 0; i < 8; i++) {
-		dc_wrli(videoPath, lctA, 2 * i + LCT_ROW_START, 0, cp_cbnk(0));
-		dc_wrli(videoPath, lctB, 2 * i + LCT_ROW_START, 0, cp_cbnk(2));
-	}
-	
-	for (i = 0; i < 32; i++) {
-		switch(i) {
-			case 0:  c = cl_black(i); break;
-			case 25: c = cl_lgray(i); break;
-			case 29: c = cl_blue(i);  break;
-			case 30: c = cl_red(i);   break;
-			default: c = cl_white(i); break;
-		}
-
-		dc_wrli(videoPath, lctA, cl_row(i), cl_col(i), c);
-		dc_wrli(videoPath, lctB, cl_row(i), cl_col(i), c);
-	}
-
-	inputPath1 ? wr_blue(1) : wr_dgray(1);
-	inputPath2 ? wr_blue(2) : wr_dgray(2);
-
-	drawInputs();	
-
 	setIcf(ICF_MAX, ICF_MAX);
 }
 
@@ -149,7 +124,7 @@ void runProgram() {
 	int evId = _ev_link("line_event");
 
 	while(1) {
-		drawInputs();
+		/* drawInputs(); */
 
 		_ev_wait(evId, 1, 1); /* Wait for VBLANK */		
 	}

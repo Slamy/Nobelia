@@ -1,6 +1,4 @@
 -a
--n=play
--o=build\nobelia
 D:\OS9\CDI\lib\cstart.r
 out\main.r
 out\input.r

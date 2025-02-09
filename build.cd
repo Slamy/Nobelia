@@ -1,18 +1,18 @@
 options: -s
 
 define
-	album		"Nobelia"
+	album		"Colortst"
 	publisher	"JEFFREY JANSSEN"
 	preparer	"JEFFREY JANSSEN"
 
-	volume	"Nobelia"	in	"DISK/NOBELIA.CDI"
+	volume	"Colortst"	in	"DISK/COLORTST.CDI"
 
 	copyright	file	Copyright	from "BUILD/COPYRGHT.TXT"
 	abstract	file	Abstract	from "BUILD/ABSTRACT.TXT"
 	biblio		file	Biblio		from "BUILD/BIBLIOGR.TXT"
 	message							from "BUILD/MESSAGE.TXT"
 
-	application file	Nobelia     from "BUILD/NOBELIA"
+	application file	Colortst     from "BUILD/COLORTST"
 
 	green       file    IntroRtf    from record data in channel 0 from
 	                                     "BUILD/TWBURN.BIN"
@@ -23,7 +23,7 @@ define
 	"COPYRGHT.TXT"	owner 0.0 protection 0x111	from	Copyright
 	"ABSTRACT.TXT"	owner 0.0 protection 0x111	from	Abstract
 	"BIBLIOGR.TXT"	owner 0.0 protection 0x111	from	Biblio
-	"CDI_NOBELIA"   owner 0.0 protection 0x555	from	Nobelia
+	"CDI_COLORTST"  owner 0.0 protection 0x555	from	Colortst
 	"INTRO.RTF"     owner 0.0 protection 0x111  from    IntroRtf
 	"SOUNDS.BIN"	owner 0.0 protection 0x111	from	Sounds
 }
