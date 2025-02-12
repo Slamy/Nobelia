@@ -2,9 +2,7 @@
 #define	__VIDEO_H__
 
 #define FCT_SIZE 160
-#define LCT_SIZE 280 * 2 + 2
-
-#define FCT_PAL_START 12
+#define LCT_SIZE 280 * 8 + 2
 
 #define SCREEN_WIDTH 384
 #define SCREEN_HEIGHT 280

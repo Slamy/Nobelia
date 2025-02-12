@@ -42,14 +42,6 @@ void createVideoBuffers()
 	dc_wrli(videoPath, lctB, 0, 0, cp_dadr((int)pbBackground + pixelStart));
 }
 
-void readPalette(plane, filename) int plane;
-u_char *filename;
-{
-	FILE *file = fopen(filename, "r");
-	fread(fctBuffer, sizeof(int), 130, file);
-	fclose(file);
-	dc_wrfct(videoPath, (plane == PA) ? fctA : fctB, FCT_PAL_START, 130, fctBuffer);
-}
 
 int readImage(file, videoBuffer)
 int file;

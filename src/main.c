@@ -23,7 +23,7 @@
 #define cl_lgray(i) cp_clut(i, 192, 203, 220)
 #define cl_black(i) cp_clut(i, 0, 0, 0)
 
-#define cl_wrli(i, c) dc_wrli(videoPath, lctB, cl_row(i), cl_col(i), c)
+#define cl_wrli(i, c) dc_wrli(videoPath, lctB, 0, 0, c)
 
 #define wr_white(i) cl_wrli(i, cl_white(i))
 #define wr_blue(i) cl_wrli(i, cl_blue(i))
@@ -60,9 +60,34 @@ int sigCode;
 
 void initProgram()
 {
-	dc_wrli(videoPath, lctA, cl_row(30), cl_col(0), cp_sig());
-	dc_wrli(videoPath, lctA, cl_row(190), cl_col(0), cp_sig());
+#if 1
+	dc_wrli(videoPath, lctA, 0, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 0, 1, cp_clut(5, 0, 255, 0));
 
+#if 1
+	dc_wrli(videoPath, lctA, 1, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 1, 1, cp_clut(5, 0, 0, 255));
+
+	dc_wrli(videoPath, lctA, 2, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 2, 1, cp_clut(5, 255, 0, 0));
+	/*dc_wrli(videoPath, lctA, 2, 2, cp_sig());*/
+
+	dc_wrli(videoPath, lctA, 3, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 3, 1, cp_clut(5, 0, 255, 0));
+
+	dc_wrli(videoPath, lctA, 4, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 4, 1, cp_clut(5, 0, 0, 255));
+
+	/*dc_wrli(videoPath, lctA, 5*2, 2, cp_sig());*/
+#endif
+
+	/*dc_wrli(videoPath, lctA, 275 * 2, 2, cp_sig()); */
+
+	dc_wrli(videoPath, lctA, 279 * 2, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 279 * 2, 1, cp_clut(5, 255, 0, 0));
+	dc_wrli(videoPath, lctA, 279 * 2, 2, cp_sig());
+
+#endif
 	setIcf(ICF_MAX, ICF_MAX);
 }
 
@@ -98,6 +123,9 @@ void runProgram()
 	{
 		printf("%d\n", samples[i + 1] - samples[i]);
 	}
+
+	for (;;)
+		;
 }
 
 int main(argc, argv)
