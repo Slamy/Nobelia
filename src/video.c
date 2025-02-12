@@ -93,7 +93,6 @@ void setupPlaneA()
 			break;
 		}
 
-		printf("Bank 0 %x %d\n", c, j);
 		fctBuffer[i++] = c;
 	}
 
@@ -118,7 +117,6 @@ void setupPlaneA()
 			break;
 		}
 
-		printf("Bank 1 %x %d\n", c, j + 192);
 		fctBuffer[i++] = c;
 	}
 

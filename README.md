@@ -17,7 +17,7 @@ It is expected to have tocsplit.exe in the root of this project.
 
 ### Starting via serial stub
 
-	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/colortest.app -e && minicom -D /dev/ttyUSB0 -b 9600
+	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/colortst.app -e && minicom -D /dev/ttyUSB0 -b 9600
 
 ### Cleanup
 
@@ -50,6 +50,8 @@ It makes use of xdotool to automate button presses.
 ### Start image on cdiemu
 
 	wine wcdiemu-v053b7.exe disk/COLORTST.CDI
+	wine wcdiemu-v053b8.exe COLORTST.CDI -playcdi -start -term uart
+
 
 ### Copy to MiSTer
 

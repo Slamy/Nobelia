@@ -17,17 +17,17 @@
 #define cl_col(i) ((i & 3) + 1)
 
 #define cl_white(i) cp_clut(i, 255, 255, 255)
-#define cl_blue(i)  cp_clut(i,  11,  94, 216)
-#define cl_red(i)   cp_clut(i, 180,  32,  42)
-#define cl_dgray(i) cp_clut(i,  38,  43,  68)
+#define cl_blue(i) cp_clut(i, 11, 94, 216)
+#define cl_red(i) cp_clut(i, 180, 32, 42)
+#define cl_dgray(i) cp_clut(i, 38, 43, 68)
 #define cl_lgray(i) cp_clut(i, 192, 203, 220)
-#define cl_black(i) cp_clut(i,   0,   0,   0)
+#define cl_black(i) cp_clut(i, 0, 0, 0)
 
 #define cl_wrli(i, c) dc_wrli(videoPath, lctB, cl_row(i), cl_col(i), c)
 
 #define wr_white(i) cl_wrli(i, cl_white(i))
-#define wr_blue(i)  cl_wrli(i, cl_blue(i))
-#define wr_red(i)   cl_wrli(i, cl_red(i))
+#define wr_blue(i) cl_wrli(i, cl_blue(i))
+#define wr_red(i) cl_wrli(i, cl_red(i))
 #define wr_dgray(i) cl_wrli(i, cl_dgray(i))
 
 /* Origin positions of crosses */
@@ -36,78 +36,39 @@
 
 #define dpos(x, y) (y * SCREEN_WIDTH + x)
 
-void drawCross(pos, col)
-	int pos;
-	register u_char col;
-{
-	register u_char *drw = paCursor + pos;
+#define SIG_BLANK 0x0100
 
-	drw += 7;                  (*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  3);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  4);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  6);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH - 12);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH - 16);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH - 12);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  6);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  4);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  4);(*drw++) = col;(*drw++) = col;(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  3);(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
-	drw += (SCREEN_WIDTH -  2);(*drw++) = col;(*drw++) = col;
-}
+int frameTick = 0;
+int sig_occured = 0;
 
-void drawInput(input, start)
-	InputRelative *input;
-	u_char start;
+int performed_multiplies = 0;
+unsigned long int samples[100];
+int sample_index = 0;
+
+int intHandler(sigCode)
+int sigCode;
 {
-	int i;
-	
-	for (i = 0; i < 8; i++) {
-		if (input->Buttons & (1 << i)) {
-			wr_red(start + i);
-		}
-		else {
-			wr_white(start + i);
-		}
+	if (sigCode == SIG_BLANK)
+	{
+		if (sample_index < 80)
+			samples[sample_index++] = performed_multiplies;
+		frameTick++;
+		sig_occured = 1;
+		dc_ssig(videoPath, SIG_BLANK, 0);
 	}
 }
 
-
-int oldPos1 = 0, oldPos2 = 0;
-void drawInputs()
+void initProgram()
 {
-	int newPos1, newPos2;
-	updateInput();
-	drawInput(&ipResult1, 3);
-	drawInput(&ipResult2, 11);
+	dc_wrli(videoPath, lctA, cl_row(30), cl_col(0), cp_sig());
+	dc_wrli(videoPath, lctA, cl_row(190), cl_col(0), cp_sig());
 
-	newPos1 = ORG1 + dpos(ipResult1.DeltaX, ipResult1.DeltaY);
-	newPos2 = ORG2 + dpos(ipResult2.DeltaX, ipResult2.DeltaY);
-
-	if (inputPath1 && oldPos1 != newPos1) {
-		drawCross(oldPos1, 0);
-		drawCross(newPos1, 30);
-		oldPos1 = newPos1;
-	}
-
-	if (inputPath2 && oldPos2 != newPos2) {
-		drawCross(oldPos2, 0);
-		drawCross(newPos2, 30);
-		oldPos2 = newPos2;
-	}
-}
-
-void initProgram() {
 	setIcf(ICF_MAX, ICF_MAX);
 }
 
 void initSystem()
 {
+	intercept(intHandler);
 	initVideo();
 	initGraphics();
 	initInput();
@@ -120,22 +81,31 @@ void closeSystem()
 	closeInput();
 }
 
-void runProgram() {
-	int evId = _ev_link("line_event");
+int scratch;
 
-	while(1) {
-		/* drawInputs(); */
+void runProgram()
+{
+	int i;
+	dc_ssig(videoPath, SIG_BLANK, 0);
 
-		_ev_wait(evId, 1, 1); /* Wait for VBLANK */		
+	while (sample_index < 80)
+	{
+		performed_multiplies++;
+		scratch = scratch * 42 + 1;
+	}
+
+	for (i = 0; i < sample_index - 1; i++)
+	{
+		printf("%d\n", samples[i + 1] - samples[i]);
 	}
 }
 
 int main(argc, argv)
-	int argc;
-	char* argv[];
+int argc;
+char *argv[];
 {
 	int res;
-
+	printf("Hallo!\r\n");
 	initSystem();
 	runProgram();
 	closeSystem();

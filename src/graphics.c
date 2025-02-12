@@ -5,7 +5,6 @@
 #include "video.h"
 #include "graphics.h"
 
-u_int frameDone = 0, frameTick = 0;
 
 u_char *paCursor;
 u_char *pbBackground;
