@@ -60,9 +60,19 @@ int sigCode;
 
 void initProgram()
 {
-	dc_wrli(videoPath, lctA, cl_row(30), cl_col(0), cp_sig());
-	dc_wrli(videoPath, lctA, cl_row(190), cl_col(0), cp_sig());
+#if 1
+	dc_wrli(videoPath, lctA, 0, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 0, 1, cp_clut(5, 0, 255, 0));
 
+	dc_wrli(videoPath, lctA, 2, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 2, 1, cp_clut(5, 255, 0, 0));
+	dc_wrli(videoPath, lctA, 2, 2, cp_sig());
+
+	dc_wrli(videoPath, lctA, 279 * 2, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 279 * 2, 1, cp_clut(5, 255, 0, 0));
+	dc_wrli(videoPath, lctA, 279 * 2, 2, cp_sig());
+
+#endif
 	setIcf(ICF_MAX, ICF_MAX);
 }
 

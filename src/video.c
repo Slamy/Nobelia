@@ -63,7 +63,7 @@ void setupPlaneA()
 	dc_flnk(videoPath, fctA, lctA, 0);
 
 	fctBuffer[i++] = cp_icm(ICM_CLUT7, ICM_CLUT7, NM_1, EV_OFF, CS_A); /* Use CLUT7 for plane A and B, 1 Matte, External Video Off */
-	fctBuffer[i++] = cp_tci(MIX_OFF, TR_OFF, TR_OFF);			   /* Transparancy Color Key for Plane A and B */
+	fctBuffer[i++] = cp_tci(MIX_OFF, TR_OFF, TR_OFF);				   /* Transparancy Color Key for Plane A and B */
 	fctBuffer[i++] = cp_po(PR_AB);									   /* Plane A in front of B */
 	fctBuffer[i++] = cp_bkcol(BK_BLACK, BK_LOW);					   /* Backdrop Low Intensity Black */
 	fctBuffer[i++] = cp_tcol(PA, 0, 0, 0);							   /* Set transparancy color to black: rgb(0,0,0) */
@@ -129,7 +129,7 @@ void setupPlaneB()
 	lctB = initLCT(PB, LCT_SIZE);
 	dc_flnk(videoPath, fctB, lctB, 0);
 
-	fctBuffer[0] = cp_sig();
+	fctBuffer[0] = cp_nop();
 	fctBuffer[1] = cp_nop();
 	fctBuffer[2] = cp_nop();
 	fctBuffer[3] = cp_nop();
