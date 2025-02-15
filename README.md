@@ -12,11 +12,12 @@ It is expected to have tocsplit.exe in the root of this project.
 
 ### Compiling
 
-	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link
+	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link_app
+	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link_cd
 
 ### Starting via serial stub
 
-	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/nobelia -e && minicom -D /dev/ttyUSB0 -b 9600
+	wine /home/andre/Downloads/cdistub-0.5.1/cdilink/cdilink.exe cdilink -port 5 -n -a 8000 -d build/colortst.app -e && minicom -D /dev/ttyUSB0 -b 9600
 
 ### Cleanup
 
@@ -44,15 +45,17 @@ It makes use of xdotool to automate button presses.
 
 ### Start image on MAME
 
-	mame cdimono1 -cdrom disk/NOBELIA.CUE
+	mame cdimono1 -cdrom disk/COLORTST.CUE
 
 ### Start image on cdiemu
 
-	wine wcdiemu-v053b7.exe disk/NOBELIA.CDI
+	wine wcdiemu-v053b7.exe disk/COLORTST.CDI
+	wine wcdiemu-v053b8.exe COLORTST.CDI -playcdi -start -term uart
+
 
 ### Copy to MiSTer
 
-	scp disk/NOBELIA.CUE disk/NOBELIA.BIN root@mister:/media/fat/games/CD-i
+	scp disk/COLORTST.CUE disk/COLORTST.BIN root@mister:/media/fat/games/CD-i
 
 ## CD-i Game by Jeffrey Janssen - nobelia@nmotion.nl
 

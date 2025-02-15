@@ -94,11 +94,6 @@ char *argv[];
 		{
 			got_it = 0;
 
-			abuf = *((unsigned short *)0x303FF4);
-			xbuf = *((unsigned short *)0x303FF6);
-			dmactl = *((unsigned short *)0x303FF8);
-			audctl = *((unsigned short *)0x303FFA);
-			dbuf = *((unsigned short *)0x303FFE);
 			reg_buffer[bufpos][0] = int_abuf;
 			reg_buffer[bufpos][1] = int_xbuf;
 			reg_buffer[bufpos][2] = ABUF;
@@ -117,7 +112,9 @@ char *argv[];
 	}
 
 	*((unsigned short *)0x30280a) = 0x00ff; /* Stop audiomap */
+#if 0
 	*((unsigned short *)0x30320a) = 0x00ff; /* Stop audiomap */
+#endif
 #if 1
 	timeout = 0;
 
@@ -127,11 +124,6 @@ char *argv[];
 		{
 			got_it = 0;
 
-			abuf = *((unsigned short *)0x303FF4);
-			xbuf = *((unsigned short *)0x303FF6);
-			dmactl = *((unsigned short *)0x303FF8);
-			audctl = *((unsigned short *)0x303FFA);
-			dbuf = *((unsigned short *)0x303FFE);
 			reg_buffer[bufpos][0] = int_abuf;
 			reg_buffer[bufpos][1] = int_xbuf;
 			reg_buffer[bufpos][2] = ABUF;
