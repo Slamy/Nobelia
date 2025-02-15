@@ -112,9 +112,8 @@ char *argv[];
 	}
 
 	*((unsigned short *)0x30280a) = 0x00ff; /* Stop audiomap */
-#if 0
 	*((unsigned short *)0x30320a) = 0x00ff; /* Stop audiomap */
-#endif
+
 #if 1
 	timeout = 0;
 
@@ -142,6 +141,19 @@ char *argv[];
 			break;
 	}
 #endif
+	for (i = 0; i < 2; i++)
+	{
+		reg_buffer[bufpos][0] = int_abuf;
+		reg_buffer[bufpos][1] = int_xbuf;
+		reg_buffer[bufpos][2] = ABUF;
+		reg_buffer[bufpos][3] = XBUF;
+
+		reg_buffer[bufpos][4] = AUDCTL;
+		reg_buffer[bufpos][5] = 3;
+		reg_buffer[bufpos][6] = timeout;
+
+		bufpos++;
+	}
 
 	for (i = 0; i < bufpos; i++)
 	{

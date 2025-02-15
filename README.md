@@ -1,5 +1,24 @@
 # Nobelia
 
+  0  ffff ffff 7fff 7fff fffe 01 2394
+  1  ffff 7fff 7fff 7fff fffe 01 236b
+  2  ffff 7fff 7fff 7fff fffe 01 2362
+  3  ffff 7fff 7fff 7fff fffe 01 2383
+  4  ffff 7fff 7fff 7fff fffe 01 2369
+  5  ffff 7fff 7fff 7fff fffe 01 2362
+  6  ffff 7fff 7fff 7fff f7ff 02 2106
+
+
+  0  ffff ffff 7fff 7fff fffe 01 237f
+  1  ffff 7fff 7fff 7fff fffe 01 2359
+  2  ffff 7fff 7fff 7fff fffe 01 236d
+  3  ffff 7fff 7fff 7fff fffe 01 236c
+  4  ffff 7fff 7fff 7fff fffe 01 2359
+  5  ffff 7fff 7fff 7fff fffe 01 236d
+  6  ffff 7fff 7fff 7fff f7ff 02 20e4
+  7  ffff 7fff 7fff 7fff f7fe 03 13881
+  8  ffff 7fff 7fff 7fff f7fe 03 13881
+  
 ## Compiling under Linux
 
 ### Prerequisites
