@@ -19,8 +19,12 @@ _CDIC_IRQ:
 	move.l d0,-(sp)
 
 	move.w $303FF4,d0 ; clear flags on ABUFD
+	move.w d0,int_abuf(a6)
+
 	move.w $303FF6,d0 ; clear flags on XBUF
-	move.b #1,got_it(a6)
+	move.w d0,int_xbuf(a6)
+
+	move.b #1,got_it(a6) ; Indicate IRQ occured
 
 	move.l (sp)+,d0
 	move.l (sp)+,a6

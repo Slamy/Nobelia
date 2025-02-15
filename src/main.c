@@ -34,8 +34,10 @@ void _CDIC_IRQ();
 
 /*int d0_backup;*/
 char got_it;
+unsigned short int_abuf;
+unsigned short int_xbuf;
 
-unsigned short reg_buffer[100][15];
+unsigned long reg_buffer[100][15];
 int bufpos;
 
 unsigned short abuf;
@@ -43,6 +45,12 @@ unsigned short xbuf;
 unsigned short dmactl;
 unsigned short audctl;
 unsigned short dbuf;
+
+#define ABUF (*((unsigned short *)0x303FF4))
+#define XBUF (*((unsigned short *)0x303FF6))
+#define AUDCTL (*((unsigned short *)0x303FFA))
+#define IVEC (*((unsigned short *)0x303FFC))
+#define DBUF (*((unsigned short *)0x303FFE))
 
 void store_a6();
 int main(argc, argv)
@@ -55,147 +63,98 @@ char *argv[];
 	u_long atten;
 	unsigned short *subcode;
 	int i, j;
-#ifdef DEBUG
+	int timeout = 0;
+
 	printf("Hello World: %x\n", *((unsigned short *)0x303FFC));
-#endif
 
 	store_a6();
 	*((unsigned long *)0x200) = _CDIC_IRQ;
-	*((unsigned short *)0x303FFC) = 0x2480;
+	IVEC = 0x2480;
 
 	while (framecnt < 2)
 	{
-		printf("%d %x %d\n", framecnt, *((unsigned short *)0x303FFe), sizeof(int));
+		printf("%d %x %d\n", framecnt, DBUF, sizeof(int));
 		sleep(1);
 		framecnt++;
 	}
-	*((unsigned short *)0x303FF4) = 0;
-	*((unsigned short *)0x303FF6) = 0;
-	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
 
-	*((unsigned short *)0x303C00) = 0x24;
-	*((unsigned short *)0x303FFE) = 0xC000; /* Start! */
-	sleep(1);
-	got_it = 0;
+	ABUF = 0;
+	XBUF = 0;
+	DBUF = 0; /* Deactivate everything */
 
-	*((unsigned short *)0x303FF4) = 0;
-	*((unsigned short *)0x303FF6) = 0;
-	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
+	*((unsigned short *)0x30280a) = 0x0045;
+	*((unsigned short *)0x30320a) = 0x0045;
 
-	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
-	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
-	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
-	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
-	*((unsigned short *)0x303C00) = 0x2a;	   /* Read Mode 2 */
-	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
-	*((unsigned short *)0x303FFA) = 0x800;
-
+	AUDCTL = 0x2800;
+	timeout = 0;
 	bufpos = 0;
-	while (bufpos < 20)
+	while (bufpos < 6)
 	{
 		if (got_it)
 		{
 			got_it = 0;
-			/* subcode = ((*((unsigned short *)0x303FFE) & 0x7) * 0xA00) | 0x300000; */
 
 			abuf = *((unsigned short *)0x303FF4);
 			xbuf = *((unsigned short *)0x303FF6);
 			dmactl = *((unsigned short *)0x303FF8);
 			audctl = *((unsigned short *)0x303FFA);
 			dbuf = *((unsigned short *)0x303FFE);
-			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
-			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
-			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
-			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
+			reg_buffer[bufpos][0] = int_abuf;
+			reg_buffer[bufpos][1] = int_xbuf;
+			reg_buffer[bufpos][2] = ABUF;
+			reg_buffer[bufpos][3] = XBUF;
 
-			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
-			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
-			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
-			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
-
-			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
-			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
-			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
-			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
-
-			reg_buffer[bufpos][12] = dmactl;
-			reg_buffer[bufpos][13] = audctl;
-			reg_buffer[bufpos][14] = dbuf;
-
-
+			reg_buffer[bufpos][4] = AUDCTL;
+			reg_buffer[bufpos][5] = 1;
+			reg_buffer[bufpos][6] = timeout;
 			bufpos++;
+			timeout = 0;
 		}
+
+		timeout++;
+		if (timeout > 80000)
+			break;
 	}
 
+	*((unsigned short *)0x30280a) = 0x00ff; /* Stop audiomap */
+	*((unsigned short *)0x30320a) = 0x00ff; /* Stop audiomap */
+#if 1
+	timeout = 0;
 
-	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
-	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
-	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
-	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
-	*((unsigned short *)0x303C00) = 0x2e;	   /* Update */
-	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
-	sleep(1);
-	got_it = 0;
-
-	*((unsigned short *)0x303FF4) = 0;
-	*((unsigned short *)0x303FF6) = 0;
-	*((unsigned short *)0x303FFE) = 0; /* Deactivate everything */
-
-	sleep(1);
-	got_it = 0;
-
-	*((unsigned short *)0x303C06) = 0x0100;	   /* File */
-	*((unsigned long *)0x303C08) = 0x0003;	   /* Channel */
-	*((unsigned short *)0x303C0C) = 0x0001;	   /* Audio Channel */
-	*((unsigned long *)0x303C02) = 0x48303100; /* Timecode */
-	*((unsigned short *)0x303C00) = 0x2a;	   /* Read Mode 2 */
-	*((unsigned short *)0x303FFE) = 0xC000;	   /* Start! */
-	*((unsigned short *)0x303FFA) = 0x800;
-
-	bufpos = 0;
-	while (bufpos < 40)
+	while (bufpos < 10)
 	{
 		if (got_it)
 		{
 			got_it = 0;
-			/* subcode = ((*((unsigned short *)0x303FFE) & 0x7) * 0xA00) | 0x300000; */
 
 			abuf = *((unsigned short *)0x303FF4);
 			xbuf = *((unsigned short *)0x303FF6);
 			dmactl = *((unsigned short *)0x303FF8);
 			audctl = *((unsigned short *)0x303FFA);
 			dbuf = *((unsigned short *)0x303FFE);
-			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
-			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
-			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
-			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
+			reg_buffer[bufpos][0] = int_abuf;
+			reg_buffer[bufpos][1] = int_xbuf;
+			reg_buffer[bufpos][2] = ABUF;
+			reg_buffer[bufpos][3] = XBUF;
 
-			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
-			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
-			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
-			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
-
-			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
-			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
-			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
-			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
-
-			reg_buffer[bufpos][12] = dmactl;
-			reg_buffer[bufpos][13] = audctl;
-			reg_buffer[bufpos][14] = dbuf;
-
+			reg_buffer[bufpos][4] = AUDCTL;
+			reg_buffer[bufpos][5] = 2;
+			reg_buffer[bufpos][6] = timeout;
 
 			bufpos++;
+			timeout = 0;
 		}
+
+		timeout++;
+		if (timeout > 80000)
+			break;
 	}
-
-
-
+#endif
 
 	for (i = 0; i < bufpos; i++)
 	{
 		printf("%3d ", i);
-		for (j = 0; j < 15; j++)
+		for (j = 0; j < 7; j++)
 		{
 			printf(" %02x", reg_buffer[i][j]);
 		}
