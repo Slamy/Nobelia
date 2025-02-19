@@ -8,7 +8,7 @@
   5  ffff 7fff 7fff 7fff fffe 01 2362
   6  ffff 7fff 7fff 7fff f7ff 02 2106
 
-
+210/05
   0  ffff ffff 7fff 7fff fffe 01 237f
   1  ffff 7fff 7fff 7fff fffe 01 2359
   2  ffff 7fff 7fff 7fff fffe 01 236d
@@ -18,7 +18,19 @@
   6  ffff 7fff 7fff 7fff f7ff 02 20e4
   7  ffff 7fff 7fff 7fff f7fe 03 13881
   8  ffff 7fff 7fff 7fff f7fe 03 13881
-  
+
+MiSTer
+  0  8000 00 00 00 2800 01 39ae
+  1  8000 00 00 00 2800 01 3b2f
+  2  8000 00 00 00 2800 01 3b6b
+  3  8000 00 00 00 2800 01 3b85
+  4  8000 00 00 00 2800 01 3b2f
+  5  8000 00 00 00 2800 01 3b8e
+  6  8000 00 00 00 2001 02 3827
+  7  8000 00 00 00 2000 03 13881
+  8  8000 00 00 00 2000 03 13881
+
+
 ## Compiling under Linux
 
 ### Prerequisites
