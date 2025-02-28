@@ -21,6 +21,7 @@ grep "End   generation of album" build/MASTER.LOG
 # Convert the CDI/TOC files into CUE/BIN using mouse automation
 
 wine tocsplit.exe&
+sleep 0.2
 WID=$(xdotool search --name --sync tocsplit)
 xdotool windowactivate --sync $WID
 # Click "Open TOC"

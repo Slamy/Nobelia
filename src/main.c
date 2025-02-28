@@ -41,7 +41,7 @@
 int frameTick = 0;
 int sig_occured = 0;
 
-int performed_multiplies = 0;
+int performed_writes = 0;
 unsigned long int samples[100];
 int sample_index = 0;
 
@@ -51,7 +51,7 @@ int sigCode;
 	if (sigCode == SIG_BLANK)
 	{
 		if (sample_index < 80)
-			samples[sample_index++] = performed_multiplies;
+			samples[sample_index++] = performed_writes;
 		frameTick++;
 		sig_occured = 1;
 		dc_ssig(videoPath, SIG_BLANK, 0);
@@ -67,6 +67,11 @@ void initProgram()
 	dc_wrli(videoPath, lctA, 2, 0, cp_cbnk(0));
 	dc_wrli(videoPath, lctA, 2, 1, cp_clut(5, 255, 0, 0));
 	dc_wrli(videoPath, lctA, 2, 2, cp_sig());
+
+	dc_wrli(videoPath, lctA, 279, 0, cp_cbnk(0));
+	dc_wrli(videoPath, lctA, 279, 1, cp_clut(5, 255, 0, 255));
+	dc_wrli(videoPath, lctA, 279, 2, cp_sig());
+
 
 	dc_wrli(videoPath, lctA, 279 * 2, 0, cp_cbnk(0));
 	dc_wrli(videoPath, lctA, 279 * 2, 1, cp_clut(5, 255, 0, 0));
@@ -100,8 +105,8 @@ void runProgram()
 
 	while (sample_index < 80)
 	{
-		performed_multiplies++;
-		scratch = scratch * 42 + 1;
+		performed_writes++;
+		scratch = scratch + 1;
 	}
 
 	for (i = 0; i < sample_index - 1; i++)

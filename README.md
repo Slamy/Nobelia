@@ -1,5 +1,27 @@
 # Nobelia
 
+Real 210/05
+427
+429
+57
+
+Turbo
+737
+749
+304
+
+Normal
+352
+377
+171
+
+Normal Nochmal
+527
+555
+61
+
+
+
 ## Compiling under Linux
 
 ### Prerequisites
