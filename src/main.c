@@ -121,11 +121,13 @@ void CloseSound()
 unsigned short cdfmvars_backup[CDFMVARS_WORDS];
 unsigned short cdfmvars_last_backup[CDFMVARS_WORDS];
 
-unsigned short events[100];
+unsigned short previous[255];
+unsigned short current[255];
+unsigned int events[255];
 event_index = 0;
 
-/* unsigned short *CDFMVARS = (unsigned short *)0x0efe710; */
-unsigned short *CDFMVARS = (unsigned short *)0x027e710;
+unsigned short *CDFMVARS = (unsigned short *)0x0efe710;
+/* unsigned short *CDFMVARS = (unsigned short *)0x027e710; */
 
 void StoreState()
 {
@@ -143,6 +145,11 @@ void CompareState()
 #ifdef DEBUG
 			printf("%d %x %x\n", i, cdfmvars_last_backup[i], cdfmvars_backup[i]);
 #endif
+			events[event_index] = i;
+			previous[event_index] = cdfmvars_last_backup[i];
+			current[event_index] = cdfmvars_backup[i];
+			event_index++;
+
 			cdfmvars_last_backup[i] = cdfmvars_backup[i];
 		}
 	}
@@ -263,20 +270,6 @@ void PlaySound(SoundNumber)
 	while (!finished)
 	{
 		CompareState();
-
-		result = sm_stat(Sound, &audiostat);
-#ifdef DEBUG
-		if (result != 0)
-			printf("Nope!\n");
-#endif
-
-		if (memcmp(&audiostat, &last_audiostat, sizeof(last_audiostat)) != 0)
-		{
-			last_audiostat = audiostat;
-#ifdef DEBUG
-			printf("Stat sound %d   %d %d %d %d\n", result, audiostat.sms_sctnum, audiostat.sms_totsec, audiostat.sms_lpcnt, audiostat.sms_res);
-#endif
-		}
 	}
 }
 
@@ -318,6 +311,7 @@ int main(argc, argv)
 int argc;
 char *argv[];
 {
+	int i;
 	FILE *file;
 	int bytes;
 	int wait;
@@ -337,38 +331,34 @@ char *argv[];
 	InitSound();
 	StoreState();
 
-	for (;;)
+	for (wait = 0; wait < waitamount; wait++)
 	{
-		for (wait = 0; wait < waitamount; wait++)
+		dc_ssig(videoPath, SIG_BLANK, 0);
+
+		while (!frameDone)
 		{
-			dc_ssig(videoPath, SIG_BLANK, 0);
+			CompareState();
+		}; /* Wait for SIG_BLANK */
+		frameDone = 0;
+	}
 
-			while (!frameDone)
-			{
-				CompareState();
-			}; /* Wait for SIG_BLANK */
-			frameDone = 0;
-		}
+	PlaySound(0);
 
-		PlaySound(0);
+	CompareState();
 
-		input = readInput1();
+	for (i = 0; i < event_index; i++)
+	{
+		printf("%3d  %3x %4x %4x\n",i, events[i], previous[i],current[i]);
+	}
 
-		if ((input & I_BUTTON1) && waitamount > 0)
+	for (wait = 0; wait < waitamount; wait++)
+	{
+		dc_ssig(videoPath, SIG_BLANK, 0);
+
+		while (!frameDone)
 		{
-			waitamount--;
-#ifdef DEBUG
-			printf("%d\n", waitamount);
-#endif
-		}
-
-		if ((input & I_BUTTON2) && waitamount < 100)
-		{
-			waitamount++;
-#ifdef DEBUG
-			printf("%d\n", waitamount);
-#endif
-		}
+		}; /* Wait for SIG_BLANK */
+		frameDone = 0;
 	}
 
 	exit(0);
