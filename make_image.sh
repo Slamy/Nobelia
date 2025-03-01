@@ -7,7 +7,7 @@ set -e
 rm -f disk/*.BIN build/*.CDI disk/*.CUE disk/*.TOC build/MASTER.LOG
 
 # First build the application
-time WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link
+time WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link_cd
 
 # Then start MS-DOS to master the image
 # Use a custom configuration to overclock the machine
@@ -21,6 +21,7 @@ grep "End   generation of album" build/MASTER.LOG
 # Convert the CDI/TOC files into CUE/BIN using mouse automation
 
 wine tocsplit.exe&
+sleep 0.2
 WID=$(xdotool search --name --sync tocsplit)
 xdotool windowactivate --sync $WID
 # Click "Open TOC"
