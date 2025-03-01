@@ -7,6 +7,7 @@
 #include <memory.h>
 #include "video.h"
 #include "graphics.h"
+#include "sample.h"
 
 #define BYTE unsigned char
 #define WORD unsigned short
@@ -15,17 +16,15 @@
 #define NULL 0
 
 /* Sounds */
-#define MAXSOUNDS 4
+#define MAXSOUNDS 1
 
-/*#define DEBUG*/
+/* #define DEBUG */
 
 int Sound;					   /* Audio device handle */
 int SoundID[MAXSOUNDS * 2];	   /* Soundmap IDs. Create a set for each frog */
 WORD SoundLengths[MAXSOUNDS] = /* Length of each sound */
 	{
-		2304 * 2, 2304, 2304, 2304 * 2};
-
-char SoundData[14336];
+		2304 * 2};
 
 void CreateSoundMap(Index, Filename, Length);
 
@@ -116,6 +115,68 @@ void CloseSound()
 	}
 }
 
+#define CDFMVARS_SIZE 0x434
+#define CDFMVARS_WORDS (CDFMVARS_SIZE / 2)
+
+unsigned short cdfmvars_backup[CDFMVARS_WORDS];
+unsigned short cdfmvars_last_backup[CDFMVARS_WORDS];
+
+unsigned short events[100];
+event_index = 0;
+
+/* unsigned short *CDFMVARS = (unsigned short *)0x0efe710; */
+unsigned short *CDFMVARS = (unsigned short *)0x027e710;
+
+void StoreState()
+{
+	memcpy(cdfmvars_backup, CDFMVARS, sizeof(cdfmvars_backup));
+}
+
+void CompareState()
+{
+	int i;
+	memcpy(cdfmvars_backup, CDFMVARS, sizeof(cdfmvars_backup));
+	for (i = 0; i < CDFMVARS_WORDS; i++)
+	{
+		if (cdfmvars_last_backup[i] != cdfmvars_backup[i])
+		{
+#ifdef DEBUG
+			printf("%d %x %x\n", i, cdfmvars_last_backup[i], cdfmvars_backup[i]);
+#endif
+			cdfmvars_last_backup[i] = cdfmvars_backup[i];
+		}
+	}
+}
+
+#if 0
+void CompareState()
+{
+	int svirq;
+	int i;
+#if 0
+	/* printf("A\n");*/
+	svirq = irq_save();
+	irq_disable(); /* mask interrupts */
+	memcpy(cdfmvars_backup, CDFMVARS, sizeof(cdfmvars_backup));
+	irq_restore(svirq); /* unmask interrupts */
+
+	/* printf("B\n"); */
+#endif	
+
+	for (i = 0; i < CDFMVARS_WORDS; i++)
+	{
+		if (cdfmvars_last_backup[i] != cdfmvars_backup[i])
+		{
+#ifdef DEBUG
+			printf("%d %x %x\n", i, cdfmvars_last_backup[i], cdfmvars_backup[i]);
+#endif
+			cdfmvars_last_backup[i] = cdfmvars_backup[i];
+		}
+	}
+	/* memcpy(cdfmvars_last_backup, cdfmvars_backup, sizeof(cdfmvars_backup)); */
+}
+#endif
+
 void CreateSoundMap(Index, Data, Length)
 	WORD Index;
 char *Data;
@@ -138,7 +199,6 @@ WORD Length;
 #ifdef DEBUG
 		printf("Unable to create sound map %d\n", Index + 1);
 #endif
-
 		return;
 	}
 
@@ -168,16 +228,56 @@ WORD Length;
 	memcpy(Buffer, Data, Length);
 }
 
+#define SIG_AUDIO 0x0010
+static STAT_BLK Status;
+short finished = 0;
 void PlaySound(SoundNumber)
 	WORD SoundNumber;
 {
-	static STAT_BLK Status;
+	static AudioStatus audiostat;
+	static AudioStatus last_audiostat;
+	int result;
+
+	Status.asy_sig = SIG_AUDIO;
+	finished = 0;
+	memset(&last_audiostat, sizeof(last_audiostat), 0);
+	memset(&audiostat, sizeof(audiostat), 0);
 
 	/* Play sound */
-	int result = sm_out(Sound, SoundID[SoundNumber], &Status);
+	sc_atten(Sound, 0x00600060);
+
+	CompareState();
+
+	result = sm_out(Sound, SoundID[SoundNumber], &Status);
 #ifdef DEBUG
 	printf("Playing sound %d -> %d\n", SoundNumber + 1, result);
 #endif
+
+	CompareState();
+
+	result = sm_stat(Sound, &audiostat);
+#ifdef DEBUG
+	printf("First Stat sound %d   %d %d %d %d\n", result, audiostat.sms_sctnum, audiostat.sms_totsec, audiostat.sms_lpcnt, audiostat.sms_res);
+#endif
+
+	while (!finished)
+	{
+		CompareState();
+
+		result = sm_stat(Sound, &audiostat);
+#ifdef DEBUG
+		if (result != 0)
+			printf("Nope!\n");
+#endif
+
+		if (memcmp(&audiostat, &last_audiostat, sizeof(last_audiostat)) != 0)
+		{
+			last_audiostat = audiostat;
+#ifdef DEBUG
+			printf("Stat sound %d   %d %d %d %d\n", result, audiostat.sms_sctnum, audiostat.sms_totsec, audiostat.sms_lpcnt, audiostat.sms_res);
+#endif
+		}
+	}
 }
 
 int intHandler(sigCode)
@@ -188,19 +288,31 @@ int sigCode;
 		frameDone = 1;
 		frameTick++;
 	}
+	else if (sigCode == SIG_AUDIO)
+	{
+#ifdef DEBUG
+		printf("X %x\n", Status.asy_stat);
+#endif
+		finished = 1;
+	}
+	else
+	{
+#ifdef DEBUG
+		printf("%x\n", sigCode);
+#endif
+	}
 }
 
 #define I_BUTTON1 0x01
 #define I_BUTTON2 0x02
 #define I_BUTTON3 0x04
 #define I_BUTTON_ANY (I_BUTTON1 | I_BUTTON2 | I_BUTTON3)
-#define I_LEFT    0x10
-#define I_RIGHT   0x20
-#define I_UP      0x40
-#define I_DOWN    0x80
+#define I_LEFT 0x10
+#define I_RIGHT 0x20
+#define I_UP 0x40
+#define I_DOWN 0x80
 #define I_SIGNAL1 0x0D00
 #define I_SIGNAL2 0x0D01
-
 
 int main(argc, argv)
 int argc;
@@ -209,9 +321,9 @@ char *argv[];
 	FILE *file;
 	int bytes;
 	int wait;
-	int waitamount=50;
+	int waitamount = 100;
 
-u_short input;
+	u_short input;
 
 #ifdef DEBUG
 	printf("Hello World!\n");
@@ -222,22 +334,8 @@ u_short input;
 	initGraphics();
 	initInput();
 
-	file = fopen("SOUNDS.BIN", "r");
-	if (!file)
-	{
-#ifdef DEBUG
-		printf("Failed reading file!\n");
-#endif
-	}
-	bytes = fread(SoundData, sizeof(SoundData), 1, file);
-
-	fclose(file);
-
-#ifdef DEBUG
-	printf("Ok %d\n", bytes);
-#endif
-
 	InitSound();
+	StoreState();
 
 	for (;;)
 	{
@@ -247,26 +345,30 @@ u_short input;
 
 			while (!frameDone)
 			{
+				CompareState();
 			}; /* Wait for SIG_BLANK */
 			frameDone = 0;
-
 		}
 
 		PlaySound(0);
 
 		input = readInput1();
 
-		if ((input & I_BUTTON1) && waitamount>0)
+		if ((input & I_BUTTON1) && waitamount > 0)
 		{
 			waitamount--;
+#ifdef DEBUG
+			printf("%d\n", waitamount);
+#endif
 		}
 
-		if ((input & I_BUTTON2) && waitamount<100)
+		if ((input & I_BUTTON2) && waitamount < 100)
 		{
 			waitamount++;
+#ifdef DEBUG
+			printf("%d\n", waitamount);
+#endif
 		}
-
-
 	}
 
 	exit(0);

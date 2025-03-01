@@ -12,3 +12,5 @@ out\input.r
 -l=D:\OS9\CDI\lib\sys.l
 -l=D:\OS9\CDI\lib\usr.l
 -l=D:\OS9\68000\lib\os_csl.l
+-l=D:\OS9\68000\lib\cpu.l
+

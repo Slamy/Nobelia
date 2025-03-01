@@ -16,7 +16,6 @@
 #define TIMER_HEIGHT 8
 
 #define SIG_BLANK 0x0100
-
 #define SCORE_FONT 0x7000
 #define HUD_FONT   0xF000
 
