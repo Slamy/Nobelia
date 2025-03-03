@@ -3,8 +3,8 @@
 #include <modes.h>
 #include <sysio.h>
 #include <ucm.h>
-#include <stdio.h>
 #include <memory.h>
+#include <stdio.h>
 #include "cdic.h"
 #include "irq.h"
 
@@ -13,7 +13,19 @@
 #define DWORD unsigned int
 #define NULL 0
 
-/* #define PRINTF(...) printf(__VA_ARGS__) */
+#define _VA_LIST	unsigned char *
+#define va_start(va, paranm) (void)((va) = (_VA_LIST) __inline_va_start__())
+void *__inline_va_start__(void);
+#define va_end(va) (void)((va) = (_VA_LIST)0)
+
+
+void print( char *format , ...)
+{
+  _VA_LIST args;
+  va_start (args, format);
+  vprintf (format, args);
+  va_end (args);
+}
 
 char cdic_irq_occured;
 unsigned short int_abuf;
@@ -45,7 +57,7 @@ void resetcdic()
 	bufpos = 0;
 }
 
-void collect_registers(int marker, int timeout)
+void collect_audiomap_registers(int marker, int timeout)
 {
 	/* As read by IRQ handler */
 	reg_buffer[bufpos][0] = int_abuf;
@@ -65,7 +77,7 @@ void collect_registers(int marker, int timeout)
 	bufpos++;
 }
 
-void observe_registers(int maxpos, int marker)
+void observe_audiomap_registers(int maxpos, int marker)
 {
 	int timeout = 0;
 	while (bufpos < maxpos)
@@ -74,14 +86,14 @@ void observe_registers(int maxpos, int marker)
 		{
 			cdic_irq_occured = 0;
 
-			collect_registers(marker, timeout);
+			collect_audiomap_registers(marker, timeout);
 			timeout = 0;
 		}
 
 		timeout++;
 		if (timeout > 80000)
 		{
-			collect_registers(marker, timeout);
+			collect_audiomap_registers(marker, timeout);
 			break;
 		}
 	}
@@ -92,12 +104,12 @@ void print_reg_buffer()
 	int i, j;
 	for (i = 0; i < bufpos; i++)
 	{
-		printf("%3d ", i);
+		print("%3d ", i);
 		for (j = 0; j < 7; j++)
 		{
-			printf(" %04x", reg_buffer[i][j]);
+			print(" %04x", reg_buffer[i][j]);
 		}
-		printf("\n");
+		print("\n");
 	}
 }
 
@@ -114,16 +126,16 @@ void test_audiomap1()
 	*((unsigned short *)0x30280a) = 0x0004;
 	*((unsigned short *)0x30320a) = 0x0004;
 
-	printf("Start audiomap and stop it with 0xff coding\n");
+	print("Start audiomap and stop it with 0xff coding\n");
 	CDIC_AUDCTL = 0x2800;
 
-	observe_registers(6, 1);
+	observe_audiomap_registers(6, 1);
 
 	/* Stop audiomap */
 	*((unsigned short *)0x30280a) = 0x00ff;
 	*((unsigned short *)0x30320a) = 0x00ff;
 
-	observe_registers(12, 2);
+	observe_audiomap_registers(12, 2);
 
 	print_reg_buffer();
 
@@ -144,10 +156,10 @@ void test_audiomap1()
 	Bit 11 is reset is reset when the audiomap was stoppped by 0xff coding
 	*/
 
-	printf("Start audiomap again with 0xff coding\n");
+	print("Start audiomap again with 0xff coding\n");
 	CDIC_AUDCTL = 0x2800;
 	bufpos = 0;
-	observe_registers(12, 3);
+	observe_audiomap_registers(12, 3);
 	print_reg_buffer();
 
 	/*
@@ -172,14 +184,14 @@ void test_audiomap2()
 	*((unsigned short *)0x30280a) = 0x0004;
 	*((unsigned short *)0x30320a) = 0x0004;
 
-	printf("Start audiomap and abort it during playback\n");
+	print("Start audiomap and abort it during playback\n");
 	CDIC_AUDCTL = 0x2800;
 
-	observe_registers(6, 1);
+	observe_audiomap_registers(6, 1);
 
 	CDIC_AUDCTL = 0; /* Abort */
 
-	observe_registers(12, 2);
+	observe_audiomap_registers(12, 2);
 
 	print_reg_buffer();
 
@@ -196,6 +208,74 @@ void test_audiomap2()
 	Bit 0 of AUDCTL is not set.
 	Bit 15 of ABUF is set but no IRQ is generated.
 	*/
+}
+
+#define SLAVE_CH2 (*((unsigned char *)0x310002))
+
+/* Plays the map theme of Zelda - Wand of Gamelon */
+void test_xa_play()
+{
+	int i, j;
+
+#if 0
+	SLAVE_CH2 = 0xca;
+	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
+	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
+
+	SLAVE_CH2 = 0x83;
+#endif
+
+	CDIC_FILE = 0x0100;
+	CDIC_CHAN = 0x0001;
+	CDIC_ACHAN = 0x0001;
+	CDIC_TIME = 0x24362100;
+	CDIC_CMD = 0x002a;
+	CDIC_DBUF = 0xc000;
+
+	bufpos = 0;
+	while (bufpos < 90)
+	{
+		if (cdic_irq_occured)
+		{
+			cdic_irq_occured = 0;
+
+			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
+			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
+			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
+			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
+
+			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
+			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
+			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
+			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
+
+			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
+			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
+			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
+			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
+
+			reg_buffer[bufpos][12] = int_abuf;
+			reg_buffer[bufpos][13] = int_xbuf;
+			reg_buffer[bufpos][14] = CDIC_DBUF;
+
+			bufpos++;
+		}
+	}
+
+	for (i = 0; i < bufpos; i++)
+	{
+		print("%3d ", i);
+		for (j = 0; j < 15; j++)
+		{
+			print(" %04x", reg_buffer[i][j]);
+		}
+		print("\n");
+	}
+
+	for (;;)
+		;
 }
 
 /* Overwrite CDIC driver IRQ handling */
@@ -216,10 +296,11 @@ char *argv[];
 	int framecnt = 0;
 	u_long atten;
 
-	printf("Hello CDIC!\n");
+	print("Hello CDIC!\n");
 
 	take_system();
 
+	test_xa_play();
 	test_audiomap1();
 	test_audiomap2();
 
