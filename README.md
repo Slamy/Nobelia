@@ -1,18 +1,47 @@
-# Nobelia
+# CDIC Black Box Analyzer
+
+The goal of this project is a black box analysis of the IMS66490 CD-Interface Controller (CDIC).
+
+# Current state of community efforts
+
+The datasheet of this chip is not public, resulting into a lack of information.
+The author of the closed source [CD-i Emulator](https://www.cdiemu.org/) already provided [some info based on reverse engineerings of the CDIC driver](https://github.com/cdifan/cdichips/blob/master/ims66490cdic.md).
+An open source implementation of the CDIC is based on these findings and is available in the [CD-i emulation core of MAME](https://github.com/mamedev/mame/blob/master/src/mame/philips/cdicdic.cpp).
+
+CDIC emulation is still plagued with issues:
+* Sometimes audio is not played
+* ADPCM audio tracks play one audio sector to late after the audio map is used
 
 ## Compiling under Linux
 
+The previous Windows oriented build system was changed to building on Linux.
+If building for Windows is desired, the previous build system needs to be restored and tested on a Windows machine.
+
 ### Prerequisites
 
-Clone https://github.com/TwBurn/cdi-sdk and have it mounted as D: drive in winecfg.
+A platform to run this application on.
+* CD-i Emulator
+* A real Philips CD-i
+* MAME is currently not supported as the UART emulation is missing
 
-Get [tocs12.zip](http://www.icdia.co.uk/sw_pc/vcdtools.html) if you want to convert
-the resulting image to CUE/BIN for usage with MAME and MiSTer.
-It is expected to have tocsplit.exe in the root of this project.
+Dosbox is required for the MSDOS based mastering tools.
+Wine is required to execute the Win32 based compiler and linker.
+Copy cdilink.exe to this folder for starting the application on a CD-i.
+A [Philips CD-i to PC Null-Modem Cable](http://www.icdia.co.uk/docs/cdi_nullmodem.jpg)
 
-### Compiling
+### Compiling for serial stub
 
-	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link
+	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link_app
+
+### Compiling for CD booting
+
+	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link_cd
+
+### Starting via serial stub on real CD-i
+
+Also starts a minicom terminal for test output
+
+	wine cdilink.exe -port 5 -n -a 8000 -d build/cdictest.app -e && minicom -D /dev/ttyUSB0 -b 9600
 
 ### Cleanup
 
@@ -26,7 +55,7 @@ The resulting image can be loaded into cdiemu
 
 ### Conversion into CUE/BIN
 
-You need to do that to use the image in MAME. Keep in mind that the tool
+You need to do that to use the image in MAME or the MiSTer core. Keep in mind that the tool
 requires mouse control.
 
 	wine tocsplit.exe
@@ -40,54 +69,21 @@ It makes use of xdotool to automate button presses.
 
 ### Start image on MAME
 
-	mame cdimono1 -cdrom disk/NOBELIA.CUE
+	mame cdimono1 -cdrom disk/CDICTEST.CUE
 
 ### Start image on cdiemu
 
-	wine wcdiemu-v053b7.exe disk/NOBELIA.CDI
+This also shows the UART window for printed outputs
+
+	wine wcdiemu-v053b8.exe CDICTEST.CDI -playcdi -start -term uart
 
 ### Copy to MiSTer
 
-	scp disk/NOBELIA.CUE disk/NOBELIA.BIN root@mister:/media/fat/games/CD-i
-
-## CD-i Game by Jeffrey Janssen - nobelia@nmotion.nl
-
-This is the Open Source version of Nobelia. 
-- The source code is identical to the released version.
-- Licensed music is not included in this version, all in-game music tracks are replaced by "The Traveller"
-- The source code and assets in this repository are meant for personal and/or educational use only
-
-### Controls
-
-**Up/Down/Left/Right**
-- Move character
-
-**Button 1**
-- Start game on titlescreen
-- Place bomb (tile in front of you needs to be empty)
-- Activate chests/switches
-- Restart level after death
-
-**Button 2**
-- Detonate remote bombs (when you have this powerup)
-
-**Button 3**
-- Pause game
+	scp disk/CDICTEST.CUE disk/CDICTEST.BIN root@mister:/media/fat/games/CD-i
 
 ## Resources
 
-All assets in the game were either used from Open resources or created/adapted by me.
-
-- Titlescreen:
-	- Image: http://clipart-library.com/clipart/348852.htm
-	- Music: Grassy World by Matthew Pablo: https://opengameart.org/content/grassy-world-overture-8bitorchestral
-- Level sprites:
-	- Armando Montero (ArMM1998): https://opengameart.org/content/zelda-like-tilesets-and-sprites
-- Level Music
-	- The Traveller by Viktor Kraus: https://opengameart.org/content/the-traveller
-- Character Sprites:
-	- Lanea Zimmerman (Sharm), Evert, withthelove: https://opengameart.org/content/tiny-16-expanded-character-sprites
-
-## Changelog
-- Makefile has been updated to use the compiler/toolset available from https://github.com/TwBurn/cdi-sdk
-- Use DOSBox to call `vcdmastr.exe` since this is a 16-bit application (see `master.bat`)
+* The project was started as a fork of the game [Nobelia](https://github.com/TwBurn/Nobelia).
+  Thanks go out to TwBurn for providing the source code to help getting into CD-i development
+* Some [register descriptions by cdifan](https://github.com/cdifan/cdichips/blob/master/ims66490cdic.md)
+* [CDIC code of MAME](https://github.com/mamedev/mame/blob/master/src/mame/philips/cdicdic.cpp)
