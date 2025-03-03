@@ -2,11 +2,13 @@
 
 The goal of this project is a black box analysis of the IMS66490 CD-Interface Controller (CDIC).
 
-# Current state of community efforts
+[Findings of these project can be found here](doc)
+
+## Current state of community efforts
 
 The datasheet of this chip is not public, resulting into a lack of information.
-The author of the closed source [CD-i Emulator](https://www.cdiemu.org/) already provided [some info based on reverse engineerings of the CDIC driver](https://github.com/cdifan/cdichips/blob/master/ims66490cdic.md).
-An open source implementation of the CDIC is based on these findings and is available in the [CD-i emulation core of MAME](https://github.com/mamedev/mame/blob/master/src/mame/philips/cdicdic.cpp).
+The author of the closed source [CD-i Emulator](https://www.cdiemu.org/) already provided [some info based on reverse engineering the CDIC driver](https://github.com/cdifan/cdichips/blob/master/ims66490cdic.md).
+An open source implementation of the CDIC is partially based on these findings and is available in the [CD-i emulation core of MAME](https://github.com/mamedev/mame/blob/master/src/mame/philips/cdicdic.cpp).
 
 CDIC emulation is still plagued with issues:
 * Sometimes audio is not played
@@ -20,14 +22,17 @@ If building for Windows is desired, the previous build system needs to be restor
 ### Prerequisites
 
 A platform to run this application on.
+Not every CD-i uses a CDIC. The intended platform is the "Mono I" hardware:
 * CD-i Emulator
-* A real Philips CD-i
-* MAME is currently not supported as the UART emulation is missing
+* A real Philips CD-i with Mono I PCB (eg. 210/05)
+* MAME is currently not supported as the UART emulation is missing for printing
 
 Dosbox is required for the MSDOS based mastering tools.
 Wine is required to execute the Win32 based compiler and linker.
 Copy cdilink.exe to this folder for starting the application on a CD-i.
 A [Philips CD-i to PC Null-Modem Cable](http://www.icdia.co.uk/docs/cdi_nullmodem.jpg)
+
+Use winecfg to mount cdi-sdk as drive D:
 
 ### Compiling for serial stub
 
@@ -42,6 +47,14 @@ A [Philips CD-i to PC Null-Modem Cable](http://www.icdia.co.uk/docs/cdi_nullmode
 Also starts a minicom terminal for test output
 
 	wine cdilink.exe -port 5 -n -a 8000 -d build/cdictest.app -e && minicom -D /dev/ttyUSB0 -b 9600
+
+There is also a script for quality of life during development.
+It compiles the code, stops the current instance of the test
+and starts the next one using the stub loader.
+This has the advantage that the CD-i must not be manually power cycled
+for the next run.
+
+	./stub_load.sh
 
 ### Cleanup
 
@@ -65,7 +78,7 @@ requires mouse control.
 This approach is crude and might not work on all machines.
 It makes use of xdotool to automate button presses.
 
-	./make_image.sh 
+	./make_image.sh
 
 ### Start image on MAME
 

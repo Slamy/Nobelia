@@ -18,11 +18,17 @@ CDIC_IRQ:
 	move.l a6_value(pc),a6
 	move.l d0,-(sp)
 
-	move.w $303FF4,d0 ; clear flags on ABUFD
+	move.w $303FFE,d0 ; clear flags on XBUF
+	move.w d0,int_dbuf(a6)
+
+	move.w $303FF4,d0 ; clear flags on ABUF
 	move.w d0,int_abuf(a6)
 
 	move.w $303FF6,d0 ; clear flags on XBUF
 	move.w d0,int_xbuf(a6)
+
+	move.w $303FFA,d0 ; clear flags on AUDCTL
+	move.w d0,int_audctl(a6)
 
 	move.b #1,cdic_irq_occured(a6) ; Indicate IRQ occured
 
@@ -30,5 +36,35 @@ CDIC_IRQ:
 	move.l (sp)+,a6
 
     rte
-    
+
+TIMER_IRQ:
+
+	rte
+
+
+VIDEO_IRQ:
+
+	rte
+
+
+SLAVE_IRQ:
+
+	rte
+
+SET_UART_BAUD: 
+	move.l a6,-(sp)
+	move.l a6_value(pc),a6
+	move.l d0,-(sp)
+
+	move.w $303FF4,d0 ; clear flags on ABUFD
+	move.w $303FF6,d0 ; clear flags on XBUF
+
+	move.b #$ff,$80002015 ; 19200 Baud
+
+	move.b #1,cdic_irq_occured(a6) ; Indicate IRQ occured
+
+	move.l (sp)+,d0
+	move.l (sp)+,a6
+
+	rte
 
