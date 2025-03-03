@@ -30,5 +30,18 @@ CDIC_IRQ:
 	move.l (sp)+,a6
 
     rte
-    
+
+TIMER_IRQ:
+
+	rte
+
+
+VIDEO_IRQ:
+
+	rte
+
+
+SLAVE_IRQ:
+
+	rte
 

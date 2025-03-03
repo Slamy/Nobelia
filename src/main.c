@@ -13,18 +13,19 @@
 #define DWORD unsigned int
 #define NULL 0
 
-#define _VA_LIST	unsigned char *
-#define va_start(va, paranm) (void)((va) = (_VA_LIST) __inline_va_start__())
+#define _VA_LIST unsigned char *
+#define va_start(va, paranm) (void)((va) = (_VA_LIST)__inline_va_start__())
 void *__inline_va_start__(void);
 #define va_end(va) (void)((va) = (_VA_LIST)0)
 
-
-void print( char *format , ...)
+void print(char *format, ...)
 {
-  _VA_LIST args;
-  va_start (args, format);
-  vprintf (format, args);
-  va_end (args);
+#if 1
+	_VA_LIST args;
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+#endif
 }
 
 char cdic_irq_occured;
@@ -210,14 +211,16 @@ void test_audiomap2()
 	*/
 }
 
-#define SLAVE_CH2 (*((unsigned char *)0x310002))
+#define SLAVE_CH0 (*((unsigned char *)0x310001))
+#define SLAVE_CH1 (*((unsigned char *)0x310003))
+#define SLAVE_CH2 (*((unsigned char *)0x310005))
 
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()
 {
 	int i, j;
 
-#if 0
+#if 1
 	SLAVE_CH2 = 0xca;
 	SLAVE_CH2 = 0x7f;
 	SLAVE_CH2 = 0x00;
@@ -283,8 +286,14 @@ void take_system()
 {
 	/* TODO I don't understand why this works */
 	store_a6();
-	*((unsigned long *)0x200) = CDIC_IRQ;
+	*((unsigned long *)0x200) = CDIC_IRQ; /* vector delivered by CDIC */
 	CDIC_IVEC = 0x2480;
+
+#if 0
+	*((unsigned long *)0xF8) = TIMER_IRQ; /* vector 62 */
+	*((unsigned long *)0xF4) = VIDEO_IRQ; /* vector 61 */
+	*((unsigned long *)0x68) = SLAVE_IRQ; /* vector 26 */
+#endif
 }
 
 int main(argc, argv)
