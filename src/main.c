@@ -34,7 +34,7 @@ unsigned short int_xbuf;
 
 /* Used to store register information during a test */
 /* We don't want to make any prints during the test as the baud rate is too slow */
-unsigned long reg_buffer[100][15];
+unsigned long reg_buffer[100][20];
 int bufpos;
 
 unsigned short abuf;
@@ -236,24 +236,36 @@ void test_audiomap2()
 void test_xa_play()
 {
 	int i, j;
+	int timecnt = 0;
 
 	resetcdic();
 
 #if 1
 	cdic_irq_occured = 0;
 
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	int_abuf = int_xbuf = cdic_irq_occured = 0 ;
+
 	CDIC_AUDCTL = 0;
 	CDIC_ACHAN = 0;
 	CDIC_CMD = 0x002e;
 	CDIC_DBUF = 0xC000;
-
-	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
 
 	while (!cdic_irq_occured)
 		;
 
 	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
 	CDIC_DBUF = 0;
+	int_abuf = int_xbuf = cdic_irq_occured = 0 ;
+
+	CDIC_AUDCTL = 0;
+	CDIC_ACHAN = 0;
+	CDIC_CMD = 0x002e;
+	CDIC_DBUF = 0xC000;
+
+	while (!cdic_irq_occured)
+		;
+
 	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
 
 	cdic_irq_occured = 0;
@@ -277,13 +289,14 @@ void test_xa_play()
 
 	/* Zelda - Wand of Gamelon - Map Theme*/
 	CDIC_FILE = 0x0100;
-	CDIC_CHAN = 0x0002;
-	CDIC_ACHAN = 0x0000;
-	CDIC_TIME = 0x24362200; /* MSF 24:36:21 */
+	CDIC_CHAN = 0x0001;
+	CDIC_ACHAN = 0x0001;
+	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
 	CDIC_CMD = 0x002a;
 	CDIC_DBUF = 0xc000;
 
 	bufpos = 0;
+	timecnt = 0;
 	while (bufpos < 90)
 	{
 		if (cdic_irq_occured)
@@ -308,6 +321,8 @@ void test_xa_play()
 			reg_buffer[bufpos][14] = CDIC_DBUF;
 			/* CDIC driver reads channel and audio channel. But this is not essential*/
 			reg_buffer[bufpos][15] = CDIC_AUDCTL;
+			reg_buffer[bufpos][16] = timecnt;
+			timecnt = 0;
 
 			if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x000f) == 0x0004)
 			{
@@ -317,12 +332,13 @@ void test_xa_play()
 
 			bufpos++;
 		}
+		timecnt++;
 	}
 
 	for (i = 0; i < bufpos; i++)
 	{
 		printf("%3d ", i);
-		for (j = 0; j < 16; j++)
+		for (j = 0; j < 17; j++)
 		{
 			printf(" %04x", reg_buffer[i][j]);
 		}
