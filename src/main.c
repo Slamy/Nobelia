@@ -261,11 +261,25 @@ void test_xa_play()
 
 	CDIC_DBUF = 0;
 
+	/* Some random data into the buffers so we know what has changed */
+	*((unsigned short *)0x300000) = 0x5555;
+	*((unsigned short *)0x300002) = 0x5555;
+	*((unsigned short *)0x300A00) = 0x5555;
+	*((unsigned short *)0x300A02) = 0x5555;
+	*((unsigned short *)0x301400) = 0x5555;
+	*((unsigned short *)0x301402) = 0x5555;
+	*((unsigned short *)0x301E00) = 0x5555;
+	*((unsigned short *)0x301E02) = 0x5555;
+	*((unsigned short *)0x302800) = 0x5555;
+	*((unsigned short *)0x302802) = 0x5555;
+	*((unsigned short *)0x303200) = 0x5555;
+	*((unsigned short *)0x303202) = 0x5555;
+
 	/* Zelda - Wand of Gamelon - Map Theme*/
 	CDIC_FILE = 0x0100;
-	CDIC_CHAN = 0x0001;
-	CDIC_ACHAN = 0x0001;
-	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
+	CDIC_CHAN = 0x0002;
+	CDIC_ACHAN = 0x0000;
+	CDIC_TIME = 0x24362200; /* MSF 24:36:21 */
 	CDIC_CMD = 0x002a;
 	CDIC_DBUF = 0xc000;
 
@@ -280,12 +294,10 @@ void test_xa_play()
 			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
 			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
 			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
-
 			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
 			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
 			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
 			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
-
 			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
 			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
 			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
