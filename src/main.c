@@ -217,7 +217,6 @@ int sigCode;
 	{
 #ifdef DEBUG
 		printf("%x\n", sigCode);
-		cdic_irq_occured = 1;
 #endif
 	}
 }
@@ -258,6 +257,20 @@ void resetcdic()
 	bufpos = 0;
 }
 
+#define SLAVE_CH0 (*((unsigned char *)0x310001))
+#define SLAVE_CH1 (*((unsigned char *)0x310003))
+#define SLAVE_CH2 (*((unsigned char *)0x310005))
+
+void slave_mute()
+{
+	SLAVE_CH2 = 0x82;
+}
+
+void slave_unmute()
+{
+	SLAVE_CH2 = 0x83;
+}
+
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()
 {
@@ -274,7 +287,7 @@ void test_xa_play()
 	CDIC_DBUF = 0xC000;
 
 	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
-	
+
 	while (!cdic_irq_occured)
 		;
 
@@ -380,27 +393,19 @@ char *argv[];
 #endif
 
 	intercept(intHandler);
-	initVideo();
-	initGraphics();
-	initInput();
 
-	InitSound();
+	SLAVE_CH2 = 0xca;
+	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
+	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
 
-	PlaySound(0);
-
-	for (wait = 0; wait < 4; wait++)
-	{
-		dc_ssig(videoPath, SIG_BLANK, 0);
-
-		while (!frameDone)
-			; /* Wait for SIG_BLANK */
-		frameDone = 0;
-	}
+	slave_unmute();
 
 	take_system();
 
 	resetcdic();
-
+#if 0
 	for (wait = 0; wait < 100; wait++)
 	{
 		dc_ssig(videoPath, SIG_BLANK, 0);
@@ -410,12 +415,11 @@ char *argv[];
 		frameDone = 0;
 	}
 
-	/*
 	printf("Start audiomap again with 0xff coding\n");
 	CDIC_AUDCTL = 0x2800;
 
 	for(;;);
-	*/
+#endif
 
 	test_xa_play();
 
