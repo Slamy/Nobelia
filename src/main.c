@@ -5,7 +5,7 @@
 #include <ucm.h>
 #include <memory.h>
 #include <stdio.h>
-#include "cdic.h"
+#include "hwreg.h"
 #include "irq.h"
 
 #define BYTE unsigned char
@@ -33,6 +33,7 @@ unsigned short int_abuf;
 unsigned short int_xbuf;
 
 /* Used to store register information during a test */
+/* We don't want to make any prints during the test as the baud rate is too slow */
 unsigned long reg_buffer[100][15];
 int bufpos;
 
@@ -56,6 +57,26 @@ void resetcdic()
 	temp = CDIC_XBUF; /* Reset IRQ flag via reading */
 
 	bufpos = 0;
+}
+
+void slave_mute()
+{
+	SLAVE_CH2 = 0x82;
+}
+
+void slave_unmute()
+{
+	SLAVE_CH2 = 0x83;
+}
+
+void slave_example_attenuation()
+{
+	/* From Zelda - Wand of Gamelon */
+	SLAVE_CH2 = 0xca;
+	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
+	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
 }
 
 void collect_audiomap_registers(int marker, int timeout)
@@ -211,29 +232,40 @@ void test_audiomap2()
 	*/
 }
 
-#define SLAVE_CH0 (*((unsigned char *)0x310001))
-#define SLAVE_CH1 (*((unsigned char *)0x310003))
-#define SLAVE_CH2 (*((unsigned char *)0x310005))
-
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()
 {
 	int i, j;
 
-#if 1
-	SLAVE_CH2 = 0xca;
-	SLAVE_CH2 = 0x7f;
-	SLAVE_CH2 = 0x00;
-	SLAVE_CH2 = 0x7f;
-	SLAVE_CH2 = 0x00;
+	resetcdic();
 
-	SLAVE_CH2 = 0x83;
+#if 1
+	cdic_irq_occured = 0;
+
+	CDIC_AUDCTL = 0;
+	CDIC_ACHAN = 0;
+	CDIC_CMD = 0x002e;
+	CDIC_DBUF = 0xC000;
+
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+
+	while (!cdic_irq_occured)
+		;
+
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	CDIC_DBUF = 0;
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+
+	cdic_irq_occured = 0;
 #endif
 
+	CDIC_DBUF = 0;
+
+	/* Zelda - Wand of Gamelon - Map Theme*/
 	CDIC_FILE = 0x0100;
 	CDIC_CHAN = 0x0001;
 	CDIC_ACHAN = 0x0001;
-	CDIC_TIME = 0x24362100;
+	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
 	CDIC_CMD = 0x002a;
 	CDIC_DBUF = 0xc000;
 
@@ -262,6 +294,14 @@ void test_xa_play()
 			reg_buffer[bufpos][12] = int_abuf;
 			reg_buffer[bufpos][13] = int_xbuf;
 			reg_buffer[bufpos][14] = CDIC_DBUF;
+			/* CDIC driver reads channel and audio channel. But this is not essential*/
+			reg_buffer[bufpos][15] = CDIC_AUDCTL;
+
+			if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x000f) == 0x0004)
+			{
+				/* Start playback. Must be performed to hear something. */
+				CDIC_AUDCTL = 0x0800;
+			}
 
 			bufpos++;
 		}
@@ -269,12 +309,12 @@ void test_xa_play()
 
 	for (i = 0; i < bufpos; i++)
 	{
-		print("%3d ", i);
-		for (j = 0; j < 15; j++)
+		printf("%3d ", i);
+		for (j = 0; j < 16; j++)
 		{
-			print(" %04x", reg_buffer[i][j]);
+			printf(" %04x", reg_buffer[i][j]);
 		}
-		print("\n");
+		printf("\n");
 	}
 
 	for (;;)
@@ -303,15 +343,15 @@ char *argv[];
 	int bytes;
 	int wait;
 	int framecnt = 0;
-	u_long atten;
 
 	print("Hello CDIC!\n");
 
 	take_system();
 
+	slave_example_attenuation();
+	slave_unmute();
+
 	test_xa_play();
-	test_audiomap1();
-	test_audiomap2();
 
 	exit(0);
 }

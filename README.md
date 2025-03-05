@@ -5,8 +5,8 @@ The goal of this project is a black box analysis of the IMS66490 CD-Interface Co
 # Current state of community efforts
 
 The datasheet of this chip is not public, resulting into a lack of information.
-The author of the closed source [CD-i Emulator](https://www.cdiemu.org/) already provided [some info based on reverse engineerings of the CDIC driver](https://github.com/cdifan/cdichips/blob/master/ims66490cdic.md).
-An open source implementation of the CDIC is based on these findings and is available in the [CD-i emulation core of MAME](https://github.com/mamedev/mame/blob/master/src/mame/philips/cdicdic.cpp).
+The author of the closed source [CD-i Emulator](https://www.cdiemu.org/) already provided [some info based on reverse engineering the CDIC driver](https://github.com/cdifan/cdichips/blob/master/ims66490cdic.md).
+An open source implementation of the CDIC is partially based on these findings and is available in the [CD-i emulation core of MAME](https://github.com/mamedev/mame/blob/master/src/mame/philips/cdicdic.cpp).
 
 CDIC emulation is still plagued with issues:
 * Sometimes audio is not played
@@ -20,8 +20,9 @@ If building for Windows is desired, the previous build system needs to be restor
 ### Prerequisites
 
 A platform to run this application on.
+Not every CD-i uses a CDIC. The intended platform is the "Mono I" hardware:
 * CD-i Emulator
-* A real Philips CD-i
+* A real Philips CD-i with Mono I PCB (eg. 210/05)
 * MAME is currently not supported as the UART emulation is missing
 
 Dosbox is required for the MSDOS based mastering tools.
