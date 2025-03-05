@@ -23,7 +23,7 @@ ASFLAGS = -O=0 -S -R=$(OUTPUT) -T=$(OUTPUT) -TO=osk -TP=68kI
 LD      = l68
 
 #FILES TO COMPILE
-FILES   = $(OUTPUT)/main.r $(OUTPUT)/intro.r $(OUTPUT)/cdio.r $(OUTPUT)/video.r $(OUTPUT)/graphics.r $(OUTPUT)/input.r $(OUTPUT)/game.r $(OUTPUT)/title.r $(OUTPUT)/object.r $(OUTPUT)/player.r $(OUTPUT)/enemy.r $(OUTPUT)/skelet.r $(OUTPUT)/scripts.r $(OUTPUT)/weapons.r
+FILES   = $(OUTPUT)/main.r $(OUTPUT)/irq.r  $(OUTPUT)/intro.r $(OUTPUT)/cdio.r $(OUTPUT)/video.r $(OUTPUT)/graphics.r $(OUTPUT)/input.r $(OUTPUT)/game.r $(OUTPUT)/title.r $(OUTPUT)/object.r $(OUTPUT)/player.r $(OUTPUT)/enemy.r $(OUTPUT)/skelet.r $(OUTPUT)/scripts.r $(OUTPUT)/weapons.r
 
 #LINKER CONFIGURATION
 LDPARAM = -a -n=cdi_$(NAME) -o=$(BUILD)/$(NAME) $(CLIB)/cstart.r $(FILES) -l=$(CLIB)/cdi.l -l=$(CLIB)/cdisys.l -l=$(CLIB)/clib.l -l=$(CLIB)/cio.l -l=$(CLIB)/math.l -l=$(CLIB)/sys.l -l=$(CLIB)/usr.l -l=$(XCLIB)/os_csl.l
@@ -43,6 +43,9 @@ link_cd: $(FILES)
 	$(LD) -z=link.txt -o=build\$(NAME)
 	fixmod -uo=0.0 $(BUILD)/$(NAME)
 
+$(OUTPUT)/irq.r : $(SRC)/irq.a
+	$(AS) $(CCFLAGS) -O=2 $(SRC)/irq.a
+	
 $(OUTPUT)/audio.r : $(SRC)/audio.c
 	$(CC) $(CCFLAGS) -O=2 $(SRC)/audio.c
 

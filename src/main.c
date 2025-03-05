@@ -8,6 +8,8 @@
 #include "video.h"
 #include "graphics.h"
 #include "sample.h"
+#include "cdic.h"
+#include "irq.h"
 
 #define BYTE unsigned char
 #define WORD unsigned short
@@ -17,6 +19,10 @@
 
 /* Sounds */
 #define MAXSOUNDS 1
+
+char cdic_irq_occured;
+unsigned short int_abuf;
+unsigned short int_xbuf;
 
 /* #define DEBUG */
 
@@ -307,6 +313,87 @@ int sigCode;
 #define I_SIGNAL1 0x0D00
 #define I_SIGNAL2 0x0D01
 
+unsigned long reg_buffer[100][15];
+int bufpos;
+
+unsigned short abuf;
+unsigned short xbuf;
+unsigned short dmactl;
+unsigned short audctl;
+unsigned short dbuf;
+
+/* Plays the map theme of Zelda - Wand of Gamelon */
+void test_xa_play()
+{
+	int i, j;
+
+	CDIC_FILE = 0x0100;
+	CDIC_CHAN = 0x0001;
+	CDIC_ACHAN = 0x0001;
+	CDIC_TIME = 0x24362100;
+	CDIC_CMD = 0x002a;
+	CDIC_DBUF = 0xc000;
+
+	bufpos = 0;
+	while (bufpos < 90)
+	{
+		if (cdic_irq_occured)
+		{
+			cdic_irq_occured = 0;
+
+			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
+			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
+			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
+			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
+
+			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
+			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
+			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
+			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
+
+			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
+			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
+			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
+			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
+
+			reg_buffer[bufpos][12] = int_abuf;
+			reg_buffer[bufpos][13] = int_xbuf;
+			reg_buffer[bufpos][14] = CDIC_DBUF;
+
+			bufpos++;
+		}
+	}
+
+	for (i = 0; i < bufpos; i++)
+	{
+		print("%3d ", i);
+		for (j = 0; j < 15; j++)
+		{
+			print(" %04x", reg_buffer[i][j]);
+		}
+		print("\n");
+	}
+
+	for (;;)
+		;
+}
+
+/* Overwrite CDIC driver IRQ handling */
+void take_system()
+{
+	/* TODO I don't understand why this works */
+	store_a6();
+	*((unsigned long *)0x200) = CDIC_IRQ; /* vector delivered by CDIC */
+	CDIC_IVEC = 0x2480;
+
+#if 0
+	*((unsigned long *)0xF8) = TIMER_IRQ; /* vector 62 */
+	*((unsigned long *)0xF4) = VIDEO_IRQ; /* vector 61 */
+	*((unsigned long *)0x68) = SLAVE_IRQ; /* vector 26 */
+#endif
+}
+
+
 int main(argc, argv)
 int argc;
 char *argv[];
@@ -336,30 +423,11 @@ char *argv[];
 		dc_ssig(videoPath, SIG_BLANK, 0);
 
 		while (!frameDone)
-		{
-			CompareState();
-		}; /* Wait for SIG_BLANK */
+			; /* Wait for SIG_BLANK */
 		frameDone = 0;
 	}
 
 	PlaySound(0);
-
-	CompareState();
-
-	for (i = 0; i < event_index; i++)
-	{
-		printf("%3d  %3x %4x %4x\n",i, events[i], previous[i],current[i]);
-	}
-
-	for (wait = 0; wait < waitamount; wait++)
-	{
-		dc_ssig(videoPath, SIG_BLANK, 0);
-
-		while (!frameDone)
-		{
-		}; /* Wait for SIG_BLANK */
-		frameDone = 0;
-	}
 
 	exit(0);
 }
