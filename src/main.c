@@ -288,11 +288,11 @@ void test_xa_play()
 	*((unsigned short *)0x303202) = 0x5555;
 
 	/* Zelda - Wand of Gamelon - Map Theme*/
-	CDIC_FILE = 0x0100;
-	CDIC_CHAN = 0x0001;
-	CDIC_ACHAN = 0x0001;
+	CDIC_FILE = 0x0100; /* MODE2 File filter */
+	CDIC_CHAN = 0x0001; /* MODE2 Channel filter Select which sectors to handle at all */
+	CDIC_ACHAN = 0x0001; /* Without this, the sectors will be written to data buffers */
 	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-	CDIC_CMD = 0x002a;
+	CDIC_CMD = 0x002a; /* Read MODE2 */
 	CDIC_DBUF = 0xc000;
 
 	bufpos = 0;
@@ -324,9 +324,10 @@ void test_xa_play()
 			reg_buffer[bufpos][16] = timecnt;
 			timecnt = 0;
 
+			/* Is the playback not started yet? Do we have an audio sector in the ADPCM buffer 0? Then play! */
 			if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x000f) == 0x0004)
 			{
-				/* Start playback. Must be performed to hear something. */
+				/* Start playback. Must be performed to hear something */
 				CDIC_AUDCTL = 0x0800;
 			}
 
