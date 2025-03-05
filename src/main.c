@@ -24,7 +24,7 @@ char cdic_irq_occured;
 unsigned short int_abuf;
 unsigned short int_xbuf;
 
-/* #define DEBUG */
+#define DEBUG
 
 int Sound;					   /* Audio device handle */
 int SoundID[MAXSOUNDS * 2];	   /* Soundmap IDs. Create a set for each frog */
@@ -121,75 +121,6 @@ void CloseSound()
 	}
 }
 
-#define CDFMVARS_SIZE 0x434
-#define CDFMVARS_WORDS (CDFMVARS_SIZE / 2)
-
-unsigned short cdfmvars_backup[CDFMVARS_WORDS];
-unsigned short cdfmvars_last_backup[CDFMVARS_WORDS];
-
-unsigned short previous[255];
-unsigned short current[255];
-unsigned int events[255];
-event_index = 0;
-
-unsigned short *CDFMVARS = (unsigned short *)0x0efe710;
-/* unsigned short *CDFMVARS = (unsigned short *)0x027e710; */
-
-void StoreState()
-{
-	memcpy(cdfmvars_backup, CDFMVARS, sizeof(cdfmvars_backup));
-}
-
-void CompareState()
-{
-	int i;
-	memcpy(cdfmvars_backup, CDFMVARS, sizeof(cdfmvars_backup));
-	for (i = 0; i < CDFMVARS_WORDS; i++)
-	{
-		if (cdfmvars_last_backup[i] != cdfmvars_backup[i])
-		{
-#ifdef DEBUG
-			printf("%d %x %x\n", i, cdfmvars_last_backup[i], cdfmvars_backup[i]);
-#endif
-			events[event_index] = i;
-			previous[event_index] = cdfmvars_last_backup[i];
-			current[event_index] = cdfmvars_backup[i];
-			event_index++;
-
-			cdfmvars_last_backup[i] = cdfmvars_backup[i];
-		}
-	}
-}
-
-#if 0
-void CompareState()
-{
-	int svirq;
-	int i;
-#if 0
-	/* printf("A\n");*/
-	svirq = irq_save();
-	irq_disable(); /* mask interrupts */
-	memcpy(cdfmvars_backup, CDFMVARS, sizeof(cdfmvars_backup));
-	irq_restore(svirq); /* unmask interrupts */
-
-	/* printf("B\n"); */
-#endif	
-
-	for (i = 0; i < CDFMVARS_WORDS; i++)
-	{
-		if (cdfmvars_last_backup[i] != cdfmvars_backup[i])
-		{
-#ifdef DEBUG
-			printf("%d %x %x\n", i, cdfmvars_last_backup[i], cdfmvars_backup[i]);
-#endif
-			cdfmvars_last_backup[i] = cdfmvars_backup[i];
-		}
-	}
-	/* memcpy(cdfmvars_last_backup, cdfmvars_backup, sizeof(cdfmvars_backup)); */
-}
-#endif
-
 void CreateSoundMap(Index, Data, Length)
 	WORD Index;
 char *Data;
@@ -247,36 +178,24 @@ short finished = 0;
 void PlaySound(SoundNumber)
 	WORD SoundNumber;
 {
-	static AudioStatus audiostat;
-	static AudioStatus last_audiostat;
 	int result;
+	static AudioStatus audiostat;
 
 	Status.asy_sig = SIG_AUDIO;
 	finished = 0;
-	memset(&last_audiostat, sizeof(last_audiostat), 0);
-	memset(&audiostat, sizeof(audiostat), 0);
 
 	/* Play sound */
-	sc_atten(Sound, 0x00600060);
-
-	CompareState();
+	/* sc_atten(Sound, 0x00600060);*/
 
 	result = sm_out(Sound, SoundID[SoundNumber], &Status);
 #ifdef DEBUG
 	printf("Playing sound %d -> %d\n", SoundNumber + 1, result);
 #endif
 
-	CompareState();
-
 	result = sm_stat(Sound, &audiostat);
 #ifdef DEBUG
 	printf("First Stat sound %d   %d %d %d %d\n", result, audiostat.sms_sctnum, audiostat.sms_totsec, audiostat.sms_lpcnt, audiostat.sms_res);
 #endif
-
-	while (!finished)
-	{
-		CompareState();
-	}
 }
 
 int intHandler(sigCode)
@@ -298,6 +217,7 @@ int sigCode;
 	{
 #ifdef DEBUG
 		printf("%x\n", sigCode);
+		cdic_irq_occured = 1;
 #endif
 	}
 }
@@ -313,7 +233,7 @@ int sigCode;
 #define I_SIGNAL1 0x0D00
 #define I_SIGNAL2 0x0D01
 
-unsigned long reg_buffer[100][15];
+unsigned long reg_buffer[100][16];
 int bufpos;
 
 unsigned short abuf;
@@ -322,11 +242,52 @@ unsigned short dmactl;
 unsigned short audctl;
 unsigned short dbuf;
 
+/* Do whatever is known to bring the CDIC into a known state */
+void resetcdic()
+{
+	int temp;
+
+	CDIC_ABUF = 0;
+	CDIC_XBUF = 0;
+	CDIC_DBUF = 0;
+	CDIC_AUDCTL = 0;
+
+	temp = CDIC_ABUF; /* Reset IRQ flag via reading */
+	temp = CDIC_XBUF; /* Reset IRQ flag via reading */
+
+	bufpos = 0;
+}
+
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()
 {
 	int i, j;
 
+	resetcdic();
+
+#if 1
+	cdic_irq_occured = 0;
+
+	CDIC_AUDCTL = 0;
+	CDIC_ACHAN = 0;
+	CDIC_CMD = 0x002e;
+	CDIC_DBUF = 0xC000;
+
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	
+	while (!cdic_irq_occured)
+		;
+
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	CDIC_DBUF = 0;
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+
+	cdic_irq_occured = 0;
+#endif
+
+	CDIC_DBUF = 0;
+
+	/* Zelda - Wand of Gamelon - Map Theme*/
 	CDIC_FILE = 0x0100;
 	CDIC_CHAN = 0x0001;
 	CDIC_ACHAN = 0x0001;
@@ -359,6 +320,15 @@ void test_xa_play()
 			reg_buffer[bufpos][12] = int_abuf;
 			reg_buffer[bufpos][13] = int_xbuf;
 			reg_buffer[bufpos][14] = CDIC_DBUF;
+			/* reg_buffer[bufpos][12] = CDIC_CHAN; */
+			/* reg_buffer[bufpos][13] = CDIC_ACHAN; */
+			reg_buffer[bufpos][15] = CDIC_AUDCTL;
+
+			if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x000f) == 0x0004)
+			{
+				/* Start playback */
+				CDIC_AUDCTL = 0x0800;
+			}
 
 			bufpos++;
 		}
@@ -366,12 +336,12 @@ void test_xa_play()
 
 	for (i = 0; i < bufpos; i++)
 	{
-		print("%3d ", i);
-		for (j = 0; j < 15; j++)
+		printf("%3d ", i);
+		for (j = 0; j < 16; j++)
 		{
-			print(" %04x", reg_buffer[i][j]);
+			printf(" %04x", reg_buffer[i][j]);
 		}
-		print("\n");
+		printf("\n");
 	}
 
 	for (;;)
@@ -392,7 +362,6 @@ void take_system()
 	*((unsigned long *)0x68) = SLAVE_IRQ; /* vector 26 */
 #endif
 }
-
 
 int main(argc, argv)
 int argc;
@@ -416,9 +385,10 @@ char *argv[];
 	initInput();
 
 	InitSound();
-	StoreState();
 
-	for (wait = 0; wait < waitamount; wait++)
+	PlaySound(0);
+
+	for (wait = 0; wait < 4; wait++)
 	{
 		dc_ssig(videoPath, SIG_BLANK, 0);
 
@@ -427,7 +397,27 @@ char *argv[];
 		frameDone = 0;
 	}
 
-	PlaySound(0);
+	take_system();
+
+	resetcdic();
+
+	for (wait = 0; wait < 100; wait++)
+	{
+		dc_ssig(videoPath, SIG_BLANK, 0);
+
+		while (!frameDone)
+			; /* Wait for SIG_BLANK */
+		frameDone = 0;
+	}
+
+	/*
+	printf("Start audiomap again with 0xff coding\n");
+	CDIC_AUDCTL = 0x2800;
+
+	for(;;);
+	*/
+
+	test_xa_play();
 
 	exit(0);
 }
