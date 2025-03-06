@@ -8,11 +8,6 @@
 #include "hwreg.h"
 #include "irq.h"
 
-#define BYTE unsigned char
-#define WORD unsigned short
-#define DWORD unsigned int
-#define NULL 0
-
 #define _VA_LIST unsigned char *
 #define va_start(va, paranm) (void)((va) = (_VA_LIST)__inline_va_start__())
 void *__inline_va_start__(void);
@@ -69,13 +64,23 @@ void slave_unmute()
 	SLAVE_CH2 = 0x83;
 }
 
-void slave_example_attenuation()
+void slave_stereo_inverted_attenuation()
 {
 	/* From Zelda - Wand of Gamelon */
 	SLAVE_CH2 = 0xca;
 	SLAVE_CH2 = 0x7f;
 	SLAVE_CH2 = 0x00;
 	SLAVE_CH2 = 0x7f;
+	SLAVE_CH2 = 0x00;
+}
+
+void slave_stereo_audio_cd_attenuation()
+{
+	/* As used by the Audio CD player */
+	SLAVE_CH2 = 0xc5;
+	SLAVE_CH2 = 0x00;
+	SLAVE_CH2 = 0x00;
+	SLAVE_CH2 = 0x00;
 	SLAVE_CH2 = 0x00;
 }
 
@@ -232,6 +237,13 @@ void test_audiomap2()
 	*/
 }
 
+void print_state()
+{
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	int_abuf = 0;
+	int_xbuf = 0;
+}
+
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()
 {
@@ -242,9 +254,7 @@ void test_xa_play()
 
 #if 1
 	cdic_irq_occured = 0;
-
-	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
-	int_abuf = int_xbuf = cdic_irq_occured = 0 ;
+	print_state();
 
 	CDIC_AUDCTL = 0;
 	CDIC_ACHAN = 0;
@@ -254,9 +264,10 @@ void test_xa_play()
 	while (!cdic_irq_occured)
 		;
 
-	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	print_state();
+
 	CDIC_DBUF = 0;
-	int_abuf = int_xbuf = cdic_irq_occured = 0 ;
+	cdic_irq_occured = 0;
 
 	CDIC_AUDCTL = 0;
 	CDIC_ACHAN = 0;
@@ -266,8 +277,7 @@ void test_xa_play()
 	while (!cdic_irq_occured)
 		;
 
-	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
-
+	print_state();
 	cdic_irq_occured = 0;
 #endif
 
@@ -288,12 +298,12 @@ void test_xa_play()
 	*((unsigned short *)0x303202) = 0x5555;
 
 	/* Zelda - Wand of Gamelon - Map Theme*/
-	CDIC_FILE = 0x0100; /* MODE2 File filter */
-	CDIC_CHAN = 0x0001; /* MODE2 Channel filter Select which sectors to handle at all */
-	CDIC_ACHAN = 0x0001; /* Without this, the sectors will be written to data buffers */
+	CDIC_FILE = 0x0100;		/* MODE2 File filter */
+	CDIC_CHAN = 0x0001;		/* MODE2 Channel filter Select which sectors to handle at all */
+	CDIC_ACHAN = 0x0001;	/* Without this, the sectors will be written to data buffers */
 	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-	CDIC_CMD = 0x002a; /* Read MODE2 */
-	CDIC_DBUF = 0xc000;
+	CDIC_CMD = 0x002a;		/* Command = Read MODE2 */
+	CDIC_DBUF = 0xc000;		/* Execute command */
 
 	bufpos = 0;
 	timecnt = 0;
@@ -343,6 +353,17 @@ void test_xa_play()
 		{
 			printf(" %04x", reg_buffer[i][j]);
 		}
+#if 0
+		if (i & 2)
+		{
+			slave_stereo_audio_cd_attenuation();
+		}
+		else
+		{
+			slave_stereo_inverted_attenuation();
+		}
+#endif
+
 		printf("\n");
 	}
 
@@ -377,7 +398,7 @@ char *argv[];
 
 	take_system();
 
-	slave_example_attenuation();
+	slave_stereo_audio_cd_attenuation();
 	slave_unmute();
 
 	test_xa_play();

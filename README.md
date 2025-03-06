@@ -2,6 +2,8 @@
 
 The goal of this project is a black box analysis of the IMS66490 CD-Interface Controller (CDIC).
 
+[Findings of these project can be found here](doc)
+
 # Current state of community efforts
 
 The datasheet of this chip is not public, resulting into a lack of information.
@@ -29,6 +31,8 @@ Dosbox is required for the MSDOS based mastering tools.
 Wine is required to execute the Win32 based compiler and linker.
 Copy cdilink.exe to this folder for starting the application on a CD-i.
 A [Philips CD-i to PC Null-Modem Cable](http://www.icdia.co.uk/docs/cdi_nullmodem.jpg)
+
+Use winecfg to mount cdi-sdk as drive D:
 
 ### Compiling for serial stub
 
