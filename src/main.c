@@ -134,7 +134,7 @@ char *argv[];
 	test_fetch_toc();
 	*/
 
-	test_xa_channel_change();
+	test_xa_read_during_read();
 
 	/*
 	CDIC_DBUF = 0;
