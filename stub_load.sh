@@ -1,13 +1,12 @@
 set -e
 
-# Compile first
+# Compile
 WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe link_app
 
 # Stop previous execution if already running by sending Ctrl+C
 stty -F /dev/ttyUSB0 19200 raw
 echo -ne '\x03' > /dev/ttyUSB0
-
-# The CD-i will now reset!
+# The CD-i will now reset
 
 # And go. Hopefully in time!
 wine cdilink.exe -port 5 -n -a 8000 -d build/cdictest.app -e

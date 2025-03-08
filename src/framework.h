@@ -14,3 +14,7 @@ extern unsigned short dmactl;
 extern unsigned short audctl;
 extern unsigned short dbuf;
 
+
+void print(char *format, ...);
+void resetcdic();
+void print_state();

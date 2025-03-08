@@ -28,7 +28,8 @@ FILES   = $(OUTPUT)/main.r $(OUTPUT)/irq.r $(OUTPUT)/crc.r $(OUTPUT)/slave.r \
 	$(OUTPUT)/test_toc_read.r \
 	$(OUTPUT)/test_xa_play.r \
 	$(OUTPUT)/test_cdda_play.r \
-	$(OUTPUT)/test_mode2_read.r
+	$(OUTPUT)/test_mode2_read.r \
+	$(OUTPUT)/test_audiomap.r
 
 #LINKER CONFIGURATION
 LDPARAM = -a -n=cdi_$(NAME) -o=$(BUILD)/$(NAME) $(CLIB)/cstart.r $(FILES) -l=$(CLIB)/cdi.l -l=$(CLIB)/cdisys.l -l=$(CLIB)/clib.l -l=$(CLIB)/cio.l -l=$(CLIB)/math.l -l=$(CLIB)/sys.l -l=$(CLIB)/usr.l -l=$(XCLIB)/os_csl.l
@@ -74,6 +75,9 @@ $(OUTPUT)/test_cdda_play.r: $(SRC)/test_cdda_play.c
 
 $(OUTPUT)/test_toc_read.r: $(SRC)/test_toc_read.c
 	$(CC) $(CCFLAGS) -O=2 $(SRC)/test_toc_read.c
+
+$(OUTPUT)/test_audiomap.r: $(SRC)/test_audiomap.c
+	$(CC) $(CCFLAGS) -O=2 $(SRC)/test_audiomap.c
 
 clean:
 	-@erase $(OUTPUT)/cm*
