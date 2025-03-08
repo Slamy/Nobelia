@@ -50,5 +50,8 @@
 #define DMA_CH0_MEM_ADR (*((unsigned long *)0x8000400c))
 #define DMA_CH0_DEV_ADR (*((unsigned long *)0x80004014))
 
+/* --- SCC68070 UART --- */
+
+#define UART_CSR  (*((unsigned char *)0x80002015))
 
 #endif

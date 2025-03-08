@@ -223,26 +223,27 @@ void test_audiomap_play_abort()
 	*/
 }
 
-void test_toc_read()
-{
-	int i, j;
-	int timecnt = 0;
-
-	CDIC_FILE = 0x0100;		/* MODE2 File filter */
-	CDIC_CHAN = 0x0001;		/* MODE2 Channel filter Select which sectors to handle at all */
-	CDIC_ACHAN = 0x0000;	/* Set to 0, to put even audio into normal data buffers */
-	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-	CDIC_CMD = 0x0027;		/* Command = Read TOC */
-	CDIC_DBUF = 0xc000;		/* Execute command */
-}
-
 /* Overwrite CDIC driver IRQ handling */
 void take_system()
 {
-	/* TODO I don't understand why this works */
+	/* TODO I don't understand why this works for assembler code. thx to cdifan */
 	store_a6();
-	*((unsigned long *)0x200) = CDIC_IRQ; /* vector delivered by CDIC */
+
 	CDIC_IVEC = 0x2480;
+	/* Only in SUPERVISOR mode, on-chip peripherals can be configured */
+	/* We abuse an CDIC IRQ to set the baud rate to 19200 */
+	*((unsigned long *)0x200) = SET_UART_BAUD; /* vector delivered by CDIC */
+	cdic_irq_occured = 0;
+	CDIC_CMD = 0x23;	/* Command = Reset Mode 1 */
+	CDIC_DBUF = 0xc000; /* Execute command */
+	while (!cdic_irq_occured)
+		;
+
+	/* printf("UCSR %x\n",cdic_irq_occured); */
+
+	cdic_irq_occured = 0;
+	/* Switch to actual IRQ handler */
+	*((unsigned long *)0x200) = CDIC_IRQ; /* vector delivered by CDIC */
 
 #if 0
 	*((unsigned long *)0xF8) = TIMER_IRQ; /* vector 62 */
@@ -275,25 +276,25 @@ char *argv[];
 	int wait;
 	int framecnt = 0;
 
-	print("Hello CDIC!\n");
+	take_system();
+
+	print("Hello CDIC %x!\n", UART_CSR);
 
 	example_crc_calculation();
-
-	take_system();
 
 	slave_stereo_audio_cd_attenuation();
 	slave_unmute();
 
-	/* test_xa_play();*/
 	/*
 	test_mode2_read();
 	test_mode1_read();
-	test_fetch_toc();
-	test_cdda_play();
+	test_xa_play();
 	*/
 
 	test_audiomap_play_stop();
 	test_audiomap_play_abort();
+	test_fetch_toc();
+	test_cdda_play();
 
 	printf("\nTest finished. Press Ctrl-C to reset.\n");
 	for (;;)
