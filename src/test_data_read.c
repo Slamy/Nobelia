@@ -18,42 +18,11 @@ void test_data_read()
 		;
 
 	print_state();
-
 	CDIC_DBUF = 0;
-	cdic_irq_occured = 0;
-
-	CDIC_AUDCTL = 0;
-	CDIC_ACHAN = 0;
-	CDIC_CMD = 0x002e;
-	CDIC_DBUF = 0xC000;
-
-	while (!cdic_irq_occured)
-		;
-
-	print_state();
-	cdic_irq_occured = 0;
-
-
-	CDIC_DBUF = 0;
-
-	/* Some random data into the buffers so we know what has changed */
-	*((unsigned short *)0x300000) = 0x5555;
-	*((unsigned short *)0x300002) = 0x5555;
-	*((unsigned short *)0x300A00) = 0x5555;
-	*((unsigned short *)0x300A02) = 0x5555;
-	*((unsigned short *)0x301400) = 0x5555;
-	*((unsigned short *)0x301402) = 0x5555;
-	*((unsigned short *)0x301E00) = 0x5555;
-	*((unsigned short *)0x301E02) = 0x5555;
-	*((unsigned short *)0x302800) = 0x5555;
-	*((unsigned short *)0x302802) = 0x5555;
-	*((unsigned short *)0x303200) = 0x5555;
-	*((unsigned short *)0x303202) = 0x5555;
-
 	/* Zelda - Wand of Gamelon - Map Theme*/
 	CDIC_FILE = 0x0100;		/* MODE2 File filter */
 	CDIC_CHAN = 0x0001;		/* MODE2 Channel filter Select which sectors to handle at all */
-	CDIC_ACHAN = 0x0001;	/* Without this, the sectors will be written to data buffers */
+	CDIC_ACHAN = 0x0001;	/* Reset to 0, to fetch even audio sectors into normal data buffers */
 	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
 	CDIC_CMD = 0x002a;		/* Command = Read MODE2 */
 	CDIC_DBUF = 0xc000;		/* Execute command */
@@ -87,12 +56,6 @@ void test_data_read()
 			reg_buffer[bufpos][16] = timecnt;
 			timecnt = 0;
 
-			/* Is the playback not started yet? Do we have an audio sector in the ADPCM buffer 0? Then play! */
-			if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x000f) == 0x0004)
-			{
-				/* Start playback. Must be performed to hear something */
-				CDIC_AUDCTL = 0x0800;
-			}
 
 			bufpos++;
 		}
