@@ -1,5 +1,6 @@
 #include "crc.h"
 #include "hwreg.h"
+#include "framework.h"
 
 void test_fetch_toc()
 {

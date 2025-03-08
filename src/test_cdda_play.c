@@ -1,5 +1,6 @@
 #include "crc.h"
 #include "hwreg.h"
+#include "framework.h"
 
 void test_cdda_play()
 {

@@ -18,7 +18,7 @@ This feature is used by CD-RTOS in the CD-I Mono I hardware.
 ## Reading the Table of Contents
 
 
-## Playing CDDA from CD
+## Playing CDDA
 
 
 ## Reading CD-I data for CPU processing

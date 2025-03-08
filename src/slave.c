@@ -1,3 +1,5 @@
+#include "slave.h"
+#include "hwreg.h"
 
 void slave_mute()
 {

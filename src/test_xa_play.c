@@ -1,4 +1,5 @@
 #include "hwreg.h"
+#include "framework.h"
 
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()

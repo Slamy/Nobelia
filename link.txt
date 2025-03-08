@@ -3,6 +3,12 @@ D:\OS9\68000\lib\cstart.r
 out\main.r
 out\crc.r
 out\irq.r
+out\slave.r
+out\test_mode1_read.r
+out\test_mode2_read.r
+out\test_xa_play.r
+out\test_cdda_play.r
+out\test_toc_read.r
 -l=D:\OS9\68000\lib\clib.l
 -l=D:\OS9\68000\lib\sys.l
 -l=D:\OS9\68000\lib\usr.l

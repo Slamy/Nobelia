@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "hwreg.h"
 #include "irq.h"
+#include "slave.h"
 
 char cdic_irq_occured;
 unsigned short int_abuf;
@@ -45,14 +46,6 @@ void print_state()
 	int_abuf = 0;
 	int_xbuf = 0;
 }
-
-/* Not the best way to do this. But the program is small and I hate the compiler */
-#include "test_mode2_read.c"
-#include "test_mode1_read.c"
-#include "test_xa_play.c"
-#include "test_cdda.c"
-#include "test_toc_read.c"
-#include "slave.c"
 
 #define _VA_LIST unsigned char *
 #define va_start(va, paranm) (void)((va) = (_VA_LIST)__inline_va_start__())

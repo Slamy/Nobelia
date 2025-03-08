@@ -1,4 +1,6 @@
 #include "hwreg.h"
+#include "framework.h"
+
 
 /* Reads the map theme of Zelda - Wand of Gamelon as data */
 void test_mode2_read()
