@@ -31,8 +31,8 @@
 /* MAME says Stop CDDA. But the command seems to have no effect */
 #define CMD_UNKNOWN_2b 0x002b
 #define CMD_UPDATE 0x002e /* Updating MODE2 filter parameters */
-/* MAME says Seek */
-#define CMD_UNKNOWN_2C 0x002c   /* Changes position? */
+/* MAME says Seek and does MODE1 reading */
+#define CMD_UNKNOWN_2C 0x002c   /* What purpose? */
 
 /* What is DSEL at 3C80 ? Is it ever used */
 

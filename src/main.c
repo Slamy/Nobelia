@@ -132,10 +132,11 @@ char *argv[];
 	test_audiomap_play_stop();
 	test_audiomap_play_abort();
 	test_xa_read_during_read();
+	test_cdda_play();
 	test_fetch_toc();
 	*/
 
-	test_cdda_play();
+	test_mode1_read();
 
 	/*
 	CDIC_DBUF = 0;
