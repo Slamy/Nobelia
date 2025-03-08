@@ -8,6 +8,7 @@
 #include "hwreg.h"
 #include "irq.h"
 #include "slave.h"
+#include "crc.h"
 
 char cdic_irq_occured;
 unsigned short int_abuf;
@@ -243,6 +244,22 @@ void take_system()
 #endif
 }
 
+void example_crc_calculation()
+{
+	int i;
+	unsigned short crc_accum;
+	unsigned char *data[] = {0x01, 0x00, 0x02, 0x01, 0x16, 0x72, 0x00, 0x03, 0x32, 0x00, 0x53, 0xBA};
+
+	crc_accum = 0; /* Init = 0 is assumed */
+	for (i = 0; i < 12; i++)
+	{
+		crc_accum = CRC_CCITT_ROUND(crc_accum, (unsigned short)data[i]);
+	}
+
+	/* 0xffff is expected */
+	printf("CRC Result %x\n", crc_accum);
+}
+
 int main(argc, argv)
 int argc;
 char *argv[];
@@ -253,6 +270,8 @@ char *argv[];
 
 	print("Hello CDIC!\n");
 
+	example_crc_calculation();
+
 	take_system();
 
 	slave_stereo_audio_cd_attenuation();
@@ -262,9 +281,9 @@ char *argv[];
 	/*
 	test_mode2_read();
 	test_mode1_read();
-	test_fetch_toc();
 	*/
 
+	test_fetch_toc();
 	test_cdda_play();
 
 	/* test_mode1_read(); */
