@@ -1,8 +1,8 @@
 # CDIC User Manual
 
-To understand the following chapters, basic knowledge of the Green Book is assumed.
+To understand the following chapters, basic knowledge of the Green Book and CD-I tracks is assumed.
 
-If you want to play music, ensure that the audio mixing circuit is correctly configured. Otherwise audio might be muted. The CDIC is usually paired with a DAC and an analog mixing circuit to controle volume envelope.
+If you want to play music, ensure that the audio mixing circuit is correctly configured. Otherwise audio might be muted. The CDIC is usually paired with a DAC and some mixing circuitry to control volume envelope.
 
 ## Resetting the CDIC
 
@@ -15,10 +15,13 @@ This feature is used by CD-RTOS in the CD-I Mono I hardware.
     *((unsigned long *)0x200) = irq_handler;
 	CDIC_IVEC = 0x2480;
 
+## Reading the Table of Contents
+
+
 ## Playing CDDA from CD
 
 
-## Reading CD-I track data
+## Reading CD-I data for CPU processing
 
 
 
@@ -37,7 +40,7 @@ The song starts at timestamp 24:36:21 and is located in file 0x0100 in channel 0
 	CDIC_DBUF = 0xc000;		/* Execute command */
 
 After doing so, the CDIC will start the operation.
-    
+
 
 ## Playing CD-I ADPCM from CPU
 

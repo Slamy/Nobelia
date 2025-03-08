@@ -8,28 +8,14 @@
 #include "hwreg.h"
 #include "irq.h"
 
-#define _VA_LIST unsigned char *
-#define va_start(va, paranm) (void)((va) = (_VA_LIST)__inline_va_start__())
-void *__inline_va_start__(void);
-#define va_end(va) (void)((va) = (_VA_LIST)0)
-
-void print(char *format, ...)
-{
-#if 1
-	_VA_LIST args;
-	va_start(args, format);
-	vprintf(format, args);
-	va_end(args);
-#endif
-}
-
 char cdic_irq_occured;
 unsigned short int_abuf;
 unsigned short int_xbuf;
 
+
 /* Used to store register information during a test */
 /* We don't want to make any prints during the test as the baud rate is too slow */
-unsigned long reg_buffer[100][20];
+unsigned long reg_buffer[100][40];
 int bufpos;
 
 unsigned short abuf;
@@ -37,6 +23,7 @@ unsigned short xbuf;
 unsigned short dmactl;
 unsigned short audctl;
 unsigned short dbuf;
+
 
 /* Do whatever is known to bring the CDIC into a known state */
 void resetcdic()
@@ -54,35 +41,35 @@ void resetcdic()
 	bufpos = 0;
 }
 
-void slave_mute()
+void print_state()
 {
-	SLAVE_CH2 = 0x82;
+	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
+	int_abuf = 0;
+	int_xbuf = 0;
 }
 
-void slave_unmute()
+
+/* Not the best way to do this. But the program is small and I hate the compiler */
+#include "test_data_read.c"
+#include "test_xa_play.c"
+#include "slave.c"
+
+#define _VA_LIST unsigned char *
+#define va_start(va, paranm) (void)((va) = (_VA_LIST)__inline_va_start__())
+void *__inline_va_start__(void);
+#define va_end(va) (void)((va) = (_VA_LIST)0)
+
+void print(char *format, ...)
 {
-	SLAVE_CH2 = 0x83;
+#if 1
+	_VA_LIST args;
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+#endif
 }
 
-void slave_stereo_inverted_attenuation()
-{
-	/* From Zelda - Wand of Gamelon */
-	SLAVE_CH2 = 0xca;
-	SLAVE_CH2 = 0x7f;
-	SLAVE_CH2 = 0x00;
-	SLAVE_CH2 = 0x7f;
-	SLAVE_CH2 = 0x00;
-}
 
-void slave_stereo_audio_cd_attenuation()
-{
-	/* As used by the Audio CD player */
-	SLAVE_CH2 = 0xc5;
-	SLAVE_CH2 = 0x00;
-	SLAVE_CH2 = 0x00;
-	SLAVE_CH2 = 0x00;
-	SLAVE_CH2 = 0x00;
-}
 
 void collect_audiomap_registers(int marker, int timeout)
 {
@@ -237,72 +224,19 @@ void test_audiomap2()
 	*/
 }
 
-void print_state()
-{
-	printf("State %04x %04x %04x %04x %04x %04x\n", int_abuf, int_xbuf, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
-	int_abuf = 0;
-	int_xbuf = 0;
-}
 
-/* Plays the map theme of Zelda - Wand of Gamelon */
-void test_xa_play()
+
+void test_raw_read()
 {
-	int i, j;
+		int i, j;
 	int timecnt = 0;
 
-	resetcdic();
-
-#if 1
-	cdic_irq_occured = 0;
-	print_state();
-
-	CDIC_AUDCTL = 0;
-	CDIC_ACHAN = 0;
-	CDIC_CMD = 0x002e;
-	CDIC_DBUF = 0xC000;
-
-	while (!cdic_irq_occured)
-		;
-
-	print_state();
-
-	CDIC_DBUF = 0;
-	cdic_irq_occured = 0;
-
-	CDIC_AUDCTL = 0;
-	CDIC_ACHAN = 0;
-	CDIC_CMD = 0x002e;
-	CDIC_DBUF = 0xC000;
-
-	while (!cdic_irq_occured)
-		;
-
-	print_state();
-	cdic_irq_occured = 0;
-#endif
-
-	CDIC_DBUF = 0;
-
-	/* Some random data into the buffers so we know what has changed */
-	*((unsigned short *)0x300000) = 0x5555;
-	*((unsigned short *)0x300002) = 0x5555;
-	*((unsigned short *)0x300A00) = 0x5555;
-	*((unsigned short *)0x300A02) = 0x5555;
-	*((unsigned short *)0x301400) = 0x5555;
-	*((unsigned short *)0x301402) = 0x5555;
-	*((unsigned short *)0x301E00) = 0x5555;
-	*((unsigned short *)0x301E02) = 0x5555;
-	*((unsigned short *)0x302800) = 0x5555;
-	*((unsigned short *)0x302802) = 0x5555;
-	*((unsigned short *)0x303200) = 0x5555;
-	*((unsigned short *)0x303202) = 0x5555;
-
 	/* Zelda - Wand of Gamelon - Map Theme*/
-	CDIC_FILE = 0x0100;		/* MODE2 File filter */
-	CDIC_CHAN = 0x0001;		/* MODE2 Channel filter Select which sectors to handle at all */
-	CDIC_ACHAN = 0x0001;	/* Without this, the sectors will be written to data buffers */
+	CDIC_FILE = 0x0000;		/* Should be ignored here */
+	CDIC_CHAN = 0x0000;		/* Should be ignored here */
+	CDIC_ACHAN = 0x0000;	/* Should be ignored here */
 	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-	CDIC_CMD = 0x002a;		/* Command = Read MODE2 */
+	CDIC_CMD = 0x0029;		/* Command = Read Mode 1 */
 	CDIC_DBUF = 0xc000;		/* Execute command */
 
 	bufpos = 0;
@@ -311,40 +245,12 @@ void test_xa_play()
 	{
 		if (cdic_irq_occured)
 		{
+
 			cdic_irq_occured = 0;
-
-			reg_buffer[bufpos][0] = *((unsigned short *)0x300000);
-			reg_buffer[bufpos][1] = *((unsigned short *)0x300002);
-			reg_buffer[bufpos][2] = *((unsigned short *)0x300A00);
-			reg_buffer[bufpos][3] = *((unsigned short *)0x300A02);
-			reg_buffer[bufpos][4] = *((unsigned short *)0x301400);
-			reg_buffer[bufpos][5] = *((unsigned short *)0x301402);
-			reg_buffer[bufpos][6] = *((unsigned short *)0x301E00);
-			reg_buffer[bufpos][7] = *((unsigned short *)0x301E02);
-			reg_buffer[bufpos][8] = *((unsigned short *)0x302800);
-			reg_buffer[bufpos][9] = *((unsigned short *)0x302802);
-			reg_buffer[bufpos][10] = *((unsigned short *)0x303200);
-			reg_buffer[bufpos][11] = *((unsigned short *)0x303202);
-
-			reg_buffer[bufpos][12] = int_abuf;
-			reg_buffer[bufpos][13] = int_xbuf;
-			reg_buffer[bufpos][14] = CDIC_DBUF;
-			/* CDIC driver reads channel and audio channel. But this is not essential*/
-			reg_buffer[bufpos][15] = CDIC_AUDCTL;
-			reg_buffer[bufpos][16] = timecnt;
-			timecnt = 0;
-
-			/* Is the playback not started yet? Do we have an audio sector in the ADPCM buffer 0? Then play! */
-			if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x000f) == 0x0004)
-			{
-				/* Start playback. Must be performed to hear something */
-				CDIC_AUDCTL = 0x0800;
-			}
-
-			bufpos++;
 		}
-		timecnt++;
 	}
+
+	resetcdic();
 
 	for (i = 0; i < bufpos; i++)
 	{
@@ -353,22 +259,22 @@ void test_xa_play()
 		{
 			printf(" %04x", reg_buffer[i][j]);
 		}
-#if 0
-		if (i & 2)
-		{
-			slave_stereo_audio_cd_attenuation();
-		}
-		else
-		{
-			slave_stereo_inverted_attenuation();
-		}
-#endif
 
 		printf("\n");
 	}
+}
 
-	for (;;)
-		;
+void test_toc_read()
+{
+	int i, j;
+	int timecnt = 0;
+
+	CDIC_FILE = 0x0100;		/* MODE2 File filter */
+	CDIC_CHAN = 0x0001;		/* MODE2 Channel filter Select which sectors to handle at all */
+	CDIC_ACHAN = 0x0000;	/* Set to 0, to put even audio into normal data buffers */
+	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
+	CDIC_CMD = 0x0027;		/* Command = Read TOC */
+	CDIC_DBUF = 0xc000;		/* Execute command */
 }
 
 /* Overwrite CDIC driver IRQ handling */
@@ -401,7 +307,9 @@ char *argv[];
 	slave_stereo_audio_cd_attenuation();
 	slave_unmute();
 
-	test_xa_play();
+	/* test_xa_play();*/
+	test_data_read();
 
+	for(;;);
 	exit(0);
 }
