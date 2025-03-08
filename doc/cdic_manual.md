@@ -4,6 +4,22 @@ To understand the following chapters, basic knowledge of the Green Book and CD-I
 
 If you want to play music, ensure that the audio mixing circuit is correctly configured. Otherwise audio might be muted. The CDIC is usually paired with a DAC and some mixing circuitry to control volume envelope.
 
+## A foreword on sectors
+
+A CD sector is 2352 bytes in size.
+A CD-I Mode 2 sector has additional header data of 24 bytes
+
+	00 ff ff ff ff ff ff ff ff ff ff 00  12 Byte Sync Pattern
+    01 42 71 							 BCD Timecode
+    02 									 Mode (always 02)
+    01 									 File
+    04 									 Channel
+    64 									 Submode
+    05 									 Coding
+    01 04 64 05							 Repetition of the last 4 bytes
+
+Due to this header data, the payload is reduced to 2324 byte
+
 ## Resetting the CDIC
 
 
@@ -84,7 +100,20 @@ When this occurs, the audio playback can be started like this:
 ## Playing CD-I ADPCM from CPU
 
 Sometimes this is called a soundmap (Green book) or an audiomap (MAME source code).
+The ADPCM data is expected as blocks of 2304 bytes.
 
+At offset 11 in the ADPCM buffer, the coding is expected
+and must be written by the CPU. It is not part of the sample data.
+[The example sample from frog feast uses coding 0x04](../src/ribbit_sample.h)
+
+At offset 12, 2304 bytes of sample data is expected.
+Here an example to prepare data in C for playback
+
+	/* [:cdic] Coding 04s, 1 channels, 4 bits, 000049d4 frequency ->  213 ms between IRQs */
+	*((unsigned short *)0x30280a) = 0x0004;
+	*((unsigned short *)0x30320a) = 0x0004;
+	memcpy((char *)0x30280c, RibbitSoundData, 2304);
+	memcpy((char *)0x30320c, RibbitSoundData + 2304, 2304);
 
 ## Reading raw data
 

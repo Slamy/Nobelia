@@ -9,6 +9,7 @@
 #include "irq.h"
 #include "slave.h"
 #include "crc.h"
+#include "ribbit_sample.h"
 
 char cdic_irq_occured;
 unsigned short int_abuf;
@@ -120,8 +121,10 @@ void print_reg_buffer()
 }
 
 /* Tests playback of audiomap */
-void test_audiomap1()
+void test_audiomap_play_stop()
 {
+	printf("# test_audiomap_play_stop()\n");
+
 	resetcdic();
 
 	/* [:cdic] Coding 05, 2 channels, 4 bits, 000049d4 frequency -> 106 ms between IRQs */
@@ -131,13 +134,15 @@ void test_audiomap1()
 	/* [:cdic] Coding 04s, 1 channels, 4 bits, 000049d4 frequency ->  213 ms between IRQs */
 	*((unsigned short *)0x30280a) = 0x0004;
 	*((unsigned short *)0x30320a) = 0x0004;
+	memcpy((char *)0x30280c, RibbitSoundData, 2304);
+	memcpy((char *)0x30320c, RibbitSoundData + 2304, 2304);
 
 	print("Start audiomap and stop it with 0xff coding\n");
 	CDIC_AUDCTL = 0x2800;
 
 	observe_audiomap_registers(6, 1);
 
-	/* Stop audiomap */
+	/* Gracefully stop audiomap with 0xff coding */
 	*((unsigned short *)0x30280a) = 0x00ff;
 	*((unsigned short *)0x30320a) = 0x00ff;
 
@@ -178,8 +183,10 @@ void test_audiomap1()
 }
 
 /* Tests abort of audiomap */
-void test_audiomap2()
+void test_audiomap_play_abort()
 {
+	printf("# test_audiomap_play_abort()\n");
+
 	resetcdic();
 
 	/* [:cdic] Coding 05, 2 channels, 4 bits, 000049d4 frequency -> 106 ms between IRQs */
@@ -281,14 +288,14 @@ char *argv[];
 	/*
 	test_mode2_read();
 	test_mode1_read();
-	*/
-
 	test_fetch_toc();
 	test_cdda_play();
+	*/
 
-	/* test_mode1_read(); */
+	test_audiomap_play_stop();
+	test_audiomap_play_abort();
 
-	printf("Test finished. Press Ctrl-C to reset.\n");
+	printf("\nTest finished. Press Ctrl-C to reset.\n");
 	for (;;)
 		;
 

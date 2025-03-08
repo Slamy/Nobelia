@@ -48,6 +48,14 @@ Also starts a minicom terminal for test output
 
 	wine cdilink.exe -port 5 -n -a 8000 -d build/cdictest.app -e && minicom -D /dev/ttyUSB0 -b 9600
 
+There is also a script for quality of life during development.
+It compiles the code, stops the current instance of the test
+and starts the next one using the stub loader.
+This has the advantage that the CD-i must not be manually power cycled
+for the next run.
+
+	./stub_load.sh
+
 ### Cleanup
 
 	WINEPATH=D:/DOS/BIN wine D:/dos/bin/bmake.exe clean
@@ -70,7 +78,7 @@ requires mouse control.
 This approach is crude and might not work on all machines.
 It makes use of xdotool to automate button presses.
 
-	./make_image.sh 
+	./make_image.sh
 
 ### Start image on MAME
 
