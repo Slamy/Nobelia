@@ -14,9 +14,10 @@ void test_xa_play()
     cdic_irq_occured = 0;
     print_state();
 
+    printf("Cause an update without active reading\n");
     CDIC_AUDCTL = 0;
     CDIC_ACHAN = 0;
-    CDIC_CMD = 0x002e;
+    CDIC_CMD = CMD_UPDATE;
     CDIC_DBUF = 0xC000;
 
     while (!cdic_irq_occured)
@@ -29,7 +30,7 @@ void test_xa_play()
 
     CDIC_AUDCTL = 0;
     CDIC_ACHAN = 0;
-    CDIC_CMD = 0x002e;
+    CDIC_CMD = CMD_UPDATE;
     CDIC_DBUF = 0xC000;
 
     while (!cdic_irq_occured)

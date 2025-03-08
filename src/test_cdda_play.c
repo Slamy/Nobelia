@@ -31,8 +31,8 @@ void test_cdda_play()
             cdic_irq_occured = 0;
             crc_accum = 0;
 
+            /* Read subcode data */
             subcode = (CDIC_DBUF & 1) ? 0x301324 : 0x300924;
-
             for (i = 0; i < 12; i++)
             {
                 reg_buffer[bufpos][i] = subcode[i];
@@ -124,7 +124,7 @@ void test_where_is_cdda()
             reg_buffer[bufpos][9] = CDIC_RAM_ADPCM0[100];
             reg_buffer[bufpos][10] = CDIC_RAM_ADPCM1[200];
             reg_buffer[bufpos][11] = CDIC_RAM_ADPCM1[100];
-            /* Ok, it is nowhere... played back directly without storage? */
+            /* Note: Ok, it is nowhere... played back directly without storage? */
 
             reg_buffer[bufpos][12] = crc_accum;
             reg_buffer[bufpos][13] = CDIC_DBUF;

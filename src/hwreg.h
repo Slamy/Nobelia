@@ -28,7 +28,11 @@
 #define CMD_CDDA 0x0028  /* Plays CDDA */
 #define CMD_MODE1 0x0029 /* Reads anything */
 #define CMD_MODE2 0x002a /* Only MODE2 sectors */
+/* MAME says Stop CDDA. But the command seems to have no effect */
+#define CMD_UNKNOWN_2b 0x002b
 #define CMD_UPDATE 0x002e /* Updating MODE2 filter parameters */
+/* MAME says Seek */
+#define CMD_UNKNOWN_2C 0x002c   /* Changes position? */
 
 /* What is DSEL at 3C80 ? Is it ever used */
 
