@@ -1,6 +1,7 @@
 -a
 D:\OS9\68000\lib\cstart.r
 out\main.r
+out\crc.r
 out\irq.r
 -l=D:\OS9\68000\lib\clib.l
 -l=D:\OS9\68000\lib\sys.l

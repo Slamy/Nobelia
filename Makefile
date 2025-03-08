@@ -23,7 +23,7 @@ ASFLAGS = -O=0 -S -R=$(OUTPUT) -T=$(OUTPUT) -TO=osk -TP=68kI
 LD      = l68
 
 #FILES TO COMPILE
-FILES   = $(OUTPUT)/main.r $(OUTPUT)/irq.r
+FILES   = $(OUTPUT)/main.r $(OUTPUT)/irq.r $(OUTPUT)/crc.r
 
 #LINKER CONFIGURATION
 LDPARAM = -a -n=cdi_$(NAME) -o=$(BUILD)/$(NAME) $(CLIB)/cstart.r $(FILES) -l=$(CLIB)/cdi.l -l=$(CLIB)/cdisys.l -l=$(CLIB)/clib.l -l=$(CLIB)/cio.l -l=$(CLIB)/math.l -l=$(CLIB)/sys.l -l=$(CLIB)/usr.l -l=$(XCLIB)/os_csl.l
@@ -46,9 +46,12 @@ link_cd: $(FILES)
 $(OUTPUT)/irq.r : $(SRC)/irq.a
 	$(AS) $(CCFLAGS) -O=2 $(SRC)/irq.a
 
-$(OUTPUT)/main.r : $(SRC)/main.c $(SRC)/test_data_read.c $(SRC)/test_xa_play.c 
+$(OUTPUT)/main.r : $(SRC)/main.c $(SRC)/test_mode2_read.c $(SRC)/test_xa_play.c $(SRC)/test_mode1_read.c $(SRC)/test_cdda.c $(SRC)/test_toc_read.c
 	$(CC) $(CCFLAGS) -O=2 $(SRC)/main.c
-	
+
+$(OUTPUT)/crc.r : $(SRC)/crc.c
+	$(CC) $(CCFLAGS) -O=2 $(SRC)/crc.c
+
 clean:
 	-@erase $(OUTPUT)/cm*
 	-@erase $(OUTPUT)/*.tmp

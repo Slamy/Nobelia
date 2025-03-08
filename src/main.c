@@ -12,7 +12,6 @@ char cdic_irq_occured;
 unsigned short int_abuf;
 unsigned short int_xbuf;
 
-
 /* Used to store register information during a test */
 /* We don't want to make any prints during the test as the baud rate is too slow */
 unsigned long reg_buffer[100][40];
@@ -23,7 +22,6 @@ unsigned short xbuf;
 unsigned short dmactl;
 unsigned short audctl;
 unsigned short dbuf;
-
 
 /* Do whatever is known to bring the CDIC into a known state */
 void resetcdic()
@@ -48,10 +46,12 @@ void print_state()
 	int_xbuf = 0;
 }
 
-
 /* Not the best way to do this. But the program is small and I hate the compiler */
-#include "test_data_read.c"
+#include "test_mode2_read.c"
+#include "test_mode1_read.c"
 #include "test_xa_play.c"
+#include "test_cdda.c"
+#include "test_toc_read.c"
 #include "slave.c"
 
 #define _VA_LIST unsigned char *
@@ -68,8 +68,6 @@ void print(char *format, ...)
 	va_end(args);
 #endif
 }
-
-
 
 void collect_audiomap_registers(int marker, int timeout)
 {
@@ -224,46 +222,6 @@ void test_audiomap2()
 	*/
 }
 
-
-
-void test_raw_read()
-{
-		int i, j;
-	int timecnt = 0;
-
-	/* Zelda - Wand of Gamelon - Map Theme*/
-	CDIC_FILE = 0x0000;		/* Should be ignored here */
-	CDIC_CHAN = 0x0000;		/* Should be ignored here */
-	CDIC_ACHAN = 0x0000;	/* Should be ignored here */
-	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-	CDIC_CMD = 0x0029;		/* Command = Read Mode 1 */
-	CDIC_DBUF = 0xc000;		/* Execute command */
-
-	bufpos = 0;
-	timecnt = 0;
-	while (bufpos < 90)
-	{
-		if (cdic_irq_occured)
-		{
-
-			cdic_irq_occured = 0;
-		}
-	}
-
-	resetcdic();
-
-	for (i = 0; i < bufpos; i++)
-	{
-		printf("%3d ", i);
-		for (j = 0; j < 17; j++)
-		{
-			printf(" %04x", reg_buffer[i][j]);
-		}
-
-		printf("\n");
-	}
-}
-
 void test_toc_read()
 {
 	int i, j;
@@ -308,8 +266,19 @@ char *argv[];
 	slave_unmute();
 
 	/* test_xa_play();*/
-	test_data_read();
+	/*
+	test_mode2_read();
+	test_mode1_read();
+	test_fetch_toc();
+	*/
 
-	for(;;);
+	test_cdda_play();
+
+	/* test_mode1_read(); */
+
+	printf("Test finished. Press Ctrl-C to reset.\n");
+	for (;;)
+		;
+
 	exit(0);
 }

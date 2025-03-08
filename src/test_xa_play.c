@@ -1,3 +1,4 @@
+#include "hwreg.h"
 
 /* Plays the map theme of Zelda - Wand of Gamelon */
 void test_xa_play()
@@ -5,9 +6,10 @@ void test_xa_play()
     int i, j;
     int timecnt = 0;
 
+    printf("# test_xa_play()\n");
+
     resetcdic();
 
-#if 1
     cdic_irq_occured = 0;
     print_state();
 
@@ -34,7 +36,6 @@ void test_xa_play()
 
     print_state();
     cdic_irq_occured = 0;
-#endif
 
     CDIC_DBUF = 0;
 
@@ -99,6 +100,12 @@ void test_xa_play()
             bufpos++;
         }
         timecnt++;
+
+        if (timecnt > 300000)
+        {
+            printf("Timeout!\n");
+            break;
+        }
     }
 
     for (i = 0; i < bufpos; i++)

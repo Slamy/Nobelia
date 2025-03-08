@@ -1,3 +1,5 @@
+#ifndef _HWREG_H
+#define _HWREG_H
 
 /* --- IMS66490 CD-Interface Controller (CDIC) ---  */
 
@@ -49,3 +51,4 @@
 #define DMA_CH0_DEV_ADR (*((unsigned long *)0x80004014))
 
 
+#endif
