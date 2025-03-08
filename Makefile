@@ -46,7 +46,7 @@ link_cd: $(FILES)
 $(OUTPUT)/irq.r : $(SRC)/irq.a
 	$(AS) $(CCFLAGS) -O=2 $(SRC)/irq.a
 
-$(OUTPUT)/main.r : $(SRC)/main.c
+$(OUTPUT)/main.r : $(SRC)/main.c $(SRC)/test_data_read.c $(SRC)/test_xa_play.c 
 	$(CC) $(CCFLAGS) -O=2 $(SRC)/main.c
 	
 clean:
