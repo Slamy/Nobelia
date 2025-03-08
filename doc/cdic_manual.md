@@ -115,5 +115,31 @@ Here an example to prepare data in C for playback
 	memcpy((char *)0x30280c, RibbitSoundData, 2304);
 	memcpy((char *)0x30320c, RibbitSoundData + 2304, 2304);
 
+Afterwards you can start playback using AUDCTL.
+
+	CDIC_AUDCTL = 0x2800;
+
+The CDIC will start playback of the first ADPCM buffer at 0x2800.
+If this buffer is played back, bit 15 of ABUF is set and an
+IRQ is generated for the CPU. Playback will continue at 0x3200.
+Both ADPCM buffers are played back to back if left alone.
+
+There is no indication which buffer was now played. The CPU has to keep track of that.
+
+If the playback has to be stopped, 2 possibilites are available.
+
+### Stopping with 0xff coding
+
+The CDIC will stop playback if the coding of the ADPCM buffer to play, has a 0xff coding. An IRQ is still generated and Bit 0 of AUDCTL is 1 during the next read to indicate this.
+
+### Stopping via abort
+
+If the CDIC shall stop immediately:
+
+	CDIC_AUDCTL = 0x0000;
+
+No IRQ is generated. Bit 0 of AUDCTL is not set.
+
 ## Reading raw data
 
+TODO
