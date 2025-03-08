@@ -66,7 +66,6 @@ IRQ just do this to start the playback:
 
 Q Subcode data is available at the same position as during TOC fetch
 
-
 ## Reading CD-I data for CPU processing
 
 
@@ -82,7 +81,7 @@ The song starts at timestamp 24:36:21 and is located in file 0x0100 in channel 0
 	CDIC_CHAN = 0x0001;		/* MODE2 Channel filter Select which sectors to handle at all */
 	CDIC_ACHAN = 0x0001;	/* Without this, the sectors will be written to data buffers */
 	CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-	CDIC_CMD = 0x002a;		/* Command = Read MODE2 */
+	CDIC_CMD = CMD_MODE2;		/* Command = Read MODE2 */
 	CDIC_DBUF = 0xc000;		/* Execute command */
 
 After doing so, the CDIC will start the operation.

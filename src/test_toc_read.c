@@ -17,7 +17,7 @@ void test_fetch_toc()
 
     CDIC_DBUF = 0;
     CDIC_TIME = 0x40400000; /* Timecode is just ignored */
-    CDIC_CMD = 0x0027;      /* Command = Fetch TOC */
+    CDIC_CMD = CMD_TOC;      /* Command = Fetch TOC */
     CDIC_DBUF = 0xc000;     /* Execute command */
 
     bufpos = 0;

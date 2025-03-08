@@ -75,10 +75,11 @@ void take_system()
 	/* We abuse an CDIC IRQ to set the baud rate to 19200 */
 	*((unsigned long *)0x200) = SET_UART_BAUD; /* vector delivered by CDIC */
 	cdic_irq_occured = 0;
-	CDIC_CMD = 0x23;	/* Command = Reset Mode 1 */
+	CDIC_CMD = 0x2e;	/* Command = Update */
 	CDIC_DBUF = 0xc000; /* Execute command */
 	while (!cdic_irq_occured)
 		;
+
 	cdic_irq_occured = 0;
 
 	/* Switch to actual IRQ handler */
@@ -128,12 +129,22 @@ char *argv[];
 	test_mode2_read();
 	test_mode1_read();
 	test_xa_play();
-	*/
-
 	test_audiomap_play_stop();
 	test_audiomap_play_abort();
 	test_fetch_toc();
-	test_cdda_play();
+	*/
+
+	test_xa_channel_change();
+
+	/*
+	CDIC_DBUF = 0;
+	cdic_irq_occured = 0;
+	CDIC_CMD = 0x24;
+	CDIC_DBUF = 0xc000;
+	while (!cdic_irq_occured)
+		;
+	cdic_irq_occured = 0;
+	*/
 
 	printf("\nTest finished. Press Ctrl-C to reset!\n");
 	for (;;)

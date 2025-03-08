@@ -28,7 +28,7 @@ void test_mode2_read()
     CDIC_CHAN = 0xffff;     /* We want all the channels! */
     CDIC_ACHAN = 0x0000;    /* Reset to 0, to fetch even audio sectors into normal data buffers */
     CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-    CDIC_CMD = 0x002a;      /* Command = Read MODE2 */
+    CDIC_CMD = CMD_MODE2;      /* Command = Read MODE2 */
     CDIC_DBUF = 0xc000;     /* Execute command */
 
     bufpos = 0;

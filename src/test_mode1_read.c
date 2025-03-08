@@ -27,7 +27,7 @@ void test_mode1_read()
     CDIC_CHAN = 0x0000;     /* Channel filter is ignored here */
     CDIC_ACHAN = 0x0000;    /* Audio channel filter is ignored here */
     CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
-    CDIC_CMD = 0x0029;      /* Command = Read MODE1 */
+    CDIC_CMD = CMD_MODE1;      /* Command = Read MODE1 */
     CDIC_DBUF = 0xc000;     /* Execute command */
 
     bufpos = 0;

@@ -12,7 +12,6 @@
 #define CDIC_RAM_ADPCM0 (((unsigned short *)0x302800))
 #define CDIC_RAM_ADPCM1 (((unsigned short *)0x303200))
 
-
 /* Assumed to be data in RAM, read by microcode */
 
 #define CDIC_CMD (*((unsigned short *)0x303C00))
@@ -20,6 +19,16 @@
 #define CDIC_FILE (*((unsigned short *)0x303C06))
 #define CDIC_CHAN (*((unsigned long *)0x303C08))
 #define CDIC_ACHAN (*((unsigned short *)0x303C0C))
+
+/* Physically stops the rotation. Reset Mode 1 in MAME */
+#define CMD_STOP_DISC 0x0023
+/* MAME calls it Reset Mode 2. Called once at system reset */
+#define CMD_UNKNOWN_24 0x0024
+#define CMD_TOC 0x0027   /* Fetches TOC */
+#define CMD_CDDA 0x0028  /* Plays CDDA */
+#define CMD_MODE1 0x0029 /* Reads anything */
+#define CMD_MODE2 0x002a /* Only MODE2 sectors */
+#define CMD_UPDATE 0x002e /* Updating MODE2 filter parameters */
 
 /* What is DSEL at 3C80 ? Is it ever used */
 
@@ -52,6 +61,6 @@
 
 /* --- SCC68070 UART --- */
 
-#define UART_CSR  (*((unsigned char *)0x80002015))
+#define UART_CSR (*((unsigned char *)0x80002015))
 
 #endif
