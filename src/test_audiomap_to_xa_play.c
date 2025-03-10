@@ -93,6 +93,7 @@ void test_audiomap_to_xa_play(int mode)
         {
             cdic_irq_occured = 0;
 
+            collect_registers();
             timecnt = 0;
 
 /* if (int_dbuf & 0x80) */
@@ -112,7 +113,7 @@ void test_audiomap_to_xa_play(int mode)
             }
 #if 0
             /* Is the playback not started yet? Do we have an audio sector in the ADPCM buffer 0? Then play! */
-            if ()
+            if ((CDIC_AUDCTL & 0x0800) == 0 && (CDIC_DBUF & 0x4800) == 0x4800)
             {
                 /* Start playback. Must be performed to hear something */
                 CDIC_AUDCTL = 0x0800;
@@ -145,26 +146,26 @@ void test_audiomap_to_xa_play(int mode)
         printf("\n");
     }
     /*
-    # test_audiomap_to_xa_play(1)
-    0  5555 5555 5555 5555 7fff ffff 4801 fffe 0000
-    1  5555 5555 5555 5555 7fff ffff 4800 fffe 006a
-    2  5555 5555 ffc0 ffc0 7fff ffff 4801 fffe 040c
-    3  ffc0 ffc0 ffc0 ffc0 7fff ffff 4800 fffe 040c
-    4  ffc0 ffc0 ffc0 ffc0 7fff ffff 4801 fffe 0421
-    5  ffc0 ffc0 ffc0 ffc0 7fff ffff 4800 fffe 040b
-    6  ffc0 ffc0 ffc0 ffc0 7fff ffff 4801 fffe 040a
-    7  ffc0 ffc0 ffc0 ffc0 7fff ffff 4800 fffe 041f
-    8  ffc0 ffc0 ffc0 ffc0 7fff ffff 4801 fffe 0409
-    9  ffc0 ffc0 ffc0 ffc0 7fff ffff 4800 fffe 040b
-    10  0404 0902 ffc0 ffc0 7fff ffff 4824 fffe e9d6
-    11  0404 2502 ffc0 ffc0 7fff ffff 4825 fffe 41ee
-    12  0404 4102 ffc0 ffc0 7fff ffff 4824 fffe 41e7
-    13  0404 5702 ffc0 ffc0 7fff ffff 4825 fffe 41cc
-    14  0404 7302 ffc0 ffc0 7fff ffff 4824 fffe 41f7
-    15  0405 1402 ffc0 ffc0 7fff ffff 4825 fffe 41f3
-    16  0405 3002 ffc0 ffc0 7fff ffff 4824 fffe 41cb
-    17  0405 4602 ffc0 ffc0 7fff ffff 4825 fffe 41f6
-    18  0405 6202 ffc0 ffc0 7fff ffff 4824 fffe 41f5
-    19  0406 0302 ffc0 ffc0 7fff ffff 4825 fffe 41cb
+    # test_audiomap_to_xa_play(0)
+     0  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 3265
+     1  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 3284
+     2  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 3297
+     3  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 327c
+     4  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 3280
+     5  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 3297
+     6  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 3296
+     7  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 327d
+     8  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 329c
+     9  ffc0 ffc0 ffc0 ffc0 ffff 7fff ffff 7fff 0800 0800 fffe fffe 329c
+    10  ffc0 ffc0 ffc0 ffc0 7fff 7fff ffff 7fff c801 c801 fffe fffe 008d
+    11  ffc0 ffc0 ffc0 ffc0 ffff 7fff 7fff 7fff c8a0 c820 fffe fffe 31cb
+    12  0404 0802 ffc0 ffc0 ffff 7fff 7fff 7fff c820 c820 fffe fffe 329c
+    13  0404 1102 ffc0 ffc0 ffff 7fff 7fff 7fff 4820 4820 fffe fffe 3296
+    14  0404 0802 0404 0902 7fff 7fff ffff 7fff 4820 4820 fffe fffe 1484
+    15  0404 0802 0404 1802 ffff 7fff 7fff 7fff 4821 4821 fffe fffe 1df2
+    16  0404 2502 0404 2402 7fff 7fff ffff 7fff 4821 4821 fffe fffe 148e
+    17  0404 3402 0404 2402 ffff 7fff 7fff 7fff 4820 4820 fffe fffe 1dff
+    18  0404 4002 0404 4102 7fff 7fff ffff 7fff 4820 4820 fffe fffe 147e
+    19  0404 4002 0404 5002 ffff 7fff 7fff 7fff 4821 4821 fffe fffe 1e02
     */
 }

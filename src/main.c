@@ -252,7 +252,6 @@ char *argv[];
 
 	These tests are for "Tetris". Insert it before execution:
 	test_xa_read_during_read();
-	test_xa_channel_change();
 
 	These tests don't require any CD to be used. Still have one inside to have the tests working:
 	test_audiomap_play_abort();
@@ -260,6 +259,7 @@ char *argv[];
 	test_cmd23();
 	test_cmd24();
 	*/
+	test_audiomap_to_xa_play(0);
 
 
 	resetcdic();

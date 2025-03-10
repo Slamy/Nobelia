@@ -49,7 +49,6 @@ void test_mode2_read()
             }
             reg_buffer[bufpos][32] = int_dbuf;
             reg_buffer[bufpos][33] = timecnt;
-            /* Reading the AUDCTL register is essential for the CDIC to produce IRQs */
             reg_buffer[bufpos][34] = int_audctl;
 
             timecnt = 0;

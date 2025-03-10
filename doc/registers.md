@@ -103,11 +103,11 @@ TODO
 | 14    | Is 1 if operation is in progress. Reset to stop operation.                              |
 | 13    | Always 0?                                                                               |
 | 12    | Sometimes set during CDDA.<br/>Subcode P for Pause?<br/>It is set between audio tracks! |
-| 11    | Sometimes 1? TODO                                                                       |
+| 11    | 1 during reading? TODO                                                                  |
 | 10-8  | Always 0?                                                                               |
 | 7     | Sometimes 1? Reset on read. TODO                                                        |
 | 6     | Always 0?                                                                               |
-| 5     | Sometimes 1? TODO                                                                       |
+| 5     | Sometimes 1? During MODE2 reading? TODO                                                 |
 | 4     | Always 0? Maybe part of index?                                                          |
 | 3-0   | Index of altered buffer? 4 and 5 for audio sectors.                                     |
 
