@@ -23,10 +23,12 @@ static void collect_registers()
 }
 
 /* Evaluates behavior during the Help cutscene of "Zelda - Wand of Gamelon".
- * Within this cutscene the software switches frequently between Audiomap and playback of audiosectors.
- * The MiSTer CD-i core (and MAME as well) have problems especially after Zelda has thrown a bomb.
- * The next spoken line should start with "Remember". The playback is delayed though
- * as the software
+ * Within this cutscene the software switches frequently between audiomap and playback of audio sectors.
+ * The MiSTer CD-i core (and MAME as well) have problems especially after Zelda has thrown the bomb.
+ * The next spoken line should start with "Remember...". For some reason, the audio channel mask is set too late,
+ * causing one missing sector of audio data.
+ *
+ * This test simulates the situation by also not setting the audio channel mask.
  */
 void test_audiomap_to_xa_play(int mode)
 {
@@ -78,6 +80,7 @@ void test_audiomap_to_xa_play(int mode)
 	*((unsigned short *)0x30280a) = 0x00ff;
 	*((unsigned short *)0x30320a) = 0x00ff;
 #endif
+    /* CDIC_AUDCTL = 0; */
 
     /* Zelda - Demo cutscene - "Remember, tools can only be used when I'm standing up." */
     CDIC_FILE = 0x0100;                  /* MODE2 File filter */
@@ -117,7 +120,7 @@ void test_audiomap_to_xa_play(int mode)
             {
                 /* Start playback. Must be performed to hear something */
                 CDIC_AUDCTL = 0x0800;
-                
+
                 CDIC_ACHAN = 0x0010; /* Without this, the sectors will be written to data buffers */
                 CDIC_CMD = CMD_UPDATE;
                 CDIC_DBUF = 0xc000; /* Execute command */
@@ -167,5 +170,7 @@ void test_audiomap_to_xa_play(int mode)
     17  0404 3402 0404 2402 ffff 7fff 7fff 7fff 4820 4820 fffe fffe 1dff
     18  0404 4002 0404 4102 7fff 7fff ffff 7fff 4820 4820 fffe fffe 147e
     19  0404 4002 0404 5002 ffff 7fff 7fff 7fff 4821 4821 fffe fffe 1e02
+
+    Note: DBUF bit 7 is set during this test. It resets on read.
     */
 }

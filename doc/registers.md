@@ -64,10 +64,11 @@ TODO Unused?
 
 ## Audio Buffer (ABUF) @ 0x3FF4
 
-| Field  | Description                                                                                      |
-| ------ | ------------------------------------------------------------------------------------------------ |
-| 15     | Set by CDIC when playback of single ADPCM buffer has finished.<br/>Reset on read<br/>Causes IRQ. |
-| 14 - 0 | Always reads as all bits set ?                                                                   |
+| Field  | Description                                                    |
+| ------ | -------------------------------------------------------------- |
+| 15     | Set by CDIC when playback of single ADPCM buffer has finished. |
+|        | Reset on read<br/>Causes IRQ.                                  |
+| 14 - 0 | Always reads as all bits set ?                                 |
 
 ## Extra Buffer (XBUF) @ 0x3FF6
 
@@ -97,17 +98,18 @@ TODO
 
 ## Data Buffer (DBUF) @ 0x3FFE
 
-| Field | Description                                                                             |
-| ----- | --------------------------------------------------------------------------------------- |
-| 15    | Set to start operation. Reset by CDIC                                                   |
-| 14    | Is 1 if operation is in progress. Reset to stop operation.                              |
-| 13    | Always 0?                                                                               |
-| 12    | Sometimes set during CDDA.<br/>Subcode P for Pause?<br/>It is set between audio tracks! |
-| 11    | 1 during reading? TODO                                                                  |
-| 10-8  | Always 0?                                                                               |
-| 7     | Sometimes 1? Reset on read. TODO                                                        |
-| 6     | Always 0?                                                                               |
-| 5     | Sometimes 1? During MODE2 reading? TODO                                                 |
-| 4     | Always 0? Maybe part of index?                                                          |
-| 3-0   | Index of altered buffer? 4 and 5 for audio sectors.                                     |
+| Field | Description                                                                            |
+| ----- | -------------------------------------------------------------------------------------- |
+| 15    | Set to start operation. Reset by CDIC                                                  |
+| 14    | Is 1 if operation is in progress. Reset to stop operation.                             |
+| 13    | Always 0?                                                                              |
+| 12    | Sometimes set during CDDA<br/>Subcode P for Pause?<br/>It is set between audio tracks! |
+| 11    | 1 during reading? TODO                                                                 |
+| 10-8  | Always 0?                                                                              |
+| 7     | Set during MODE2 reading with active ADPCM playback?                                   |
+|       | Only set when ACHAN==0. Reset on read.                                                 |
+| 6     | Always 0?                                                                              |
+| 5     | Set During MODE2 reading?                                                              |
+| 4     | Always 0? Maybe part of index?                                                         |
+| 3-0   | Index of altered buffer? 4 and 5 for audio sectors.                                    |
 
