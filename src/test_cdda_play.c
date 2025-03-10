@@ -22,12 +22,13 @@ void test_cdda_play()
     cdic_irq_occured = 0;
 
     CDIC_TIME = 0x00020000; /* MSF 00:02:00 */
+    CDIC_TIME = 0x03280000; /* MSF 00:02:00 */
     CDIC_CMD = CMD_CDDA;    /* Command = Play CDDA */
     CDIC_DBUF = 0xc000;     /* Execute command */
 
     bufpos = 0;
     timecnt = 0;
-    while (bufpos < 90)
+    while (bufpos < 500)
     {
         if (cdic_irq_occured)
         {
@@ -55,6 +56,15 @@ void test_cdda_play()
                 /* Start playback. Must be performed to hear something! */
                 CDIC_AUDCTL = 0x0800;
             }
+
+#if 0
+            if (bufpos == 45)
+            {
+                /* What does this do?*/
+                CDIC_CMD = CMD_UNKNOWN_2b;
+                CDIC_DBUF = 0xc000; /* Execute command */
+            }
+#endif
 
             bufpos++;
         }

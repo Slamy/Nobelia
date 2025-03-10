@@ -19,7 +19,7 @@ unsigned short int_audctl = 0;
 
 /* Used to store register information during a test */
 /* We don't want to make any prints during the test as the baud rate is too slow */
-unsigned long reg_buffer[100][40];
+unsigned long reg_buffer[500][40];
 int bufpos = 0;
 int timecnt = 0;
 
@@ -260,7 +260,7 @@ char *argv[];
 	test_cmd24();
 	*/
 
-	test_audiomap_play_stop();
+	test_cdda_play();
 
 	resetcdic();
 	printf("\nTest finished. Press Ctrl-C to reset!\n");

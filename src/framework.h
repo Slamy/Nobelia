@@ -8,7 +8,7 @@ extern int timecnt;
 
 /* Used to store register information during a test */
 /* We don't want to make any prints during the test as the baud rate is too slow */
-extern unsigned long reg_buffer[100][40];
+extern unsigned long reg_buffer[500][40];
 extern int bufpos;
 
 void print(char *format, ...);
