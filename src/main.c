@@ -193,7 +193,7 @@ void test_cmd24()
 	print_state();
 	print_state();
 
-	/* Output of test
+	/* Output of test when Audio CD is inserted
 	# test_cmd24()
 	State INT: 7fff ffff 5801 d7fe  Now: 7fff 7fff 5801 d7fe
 	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 5800 d7fe
@@ -215,6 +215,32 @@ void test_cmd24()
 	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 1801 d7fe
 	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 1800 d7fe
 	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 1800 d7fe
+
+	Output of test with Zelda - Wand of Gamelon inserted
+	# test_cmd24()
+	State INT: 7fff ffff 4801 d7fe  Now: 7fff 7fff 4801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff c801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 4801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0800 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0801 d7fe
+	State INT: 0000 0000 0000 0000  Now: 7fff 7fff 0801 d7fe
+
+	Note the difference: The Audio CD has bit 12 set.
+	It is interesting that bit 0 of DBUF still toggles
 	*/
 }
 
@@ -249,18 +275,19 @@ char *argv[];
 	test_xa_play();
 	test_mode2_read();
 	test_mode1_read();
+	test_mode2_read_stop_read();
 
 	These tests are for "Tetris". Insert it before execution:
 	test_xa_read_during_read();
 
-	These tests don't require any CD to be used. Still have one inside to have the tests working:
+	These tests don't require any CD to be used.
+	Still have one inside to have the tests working:
 	test_audiomap_play_abort();
 	test_audiomap_play_stop();
 	test_cmd23();
 	test_cmd24();
 	*/
-	test_audiomap_to_xa_play(0);
-
+	test_audiomap_play_stop();
 
 	resetcdic();
 	printf("\nTest finished. Press Ctrl-C to reset!\n");
