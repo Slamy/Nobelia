@@ -46,7 +46,6 @@ void resetcdic()
 
 void print_state()
 {
-	printf("State INT: %04x %04x %04x %04x  Now: %04x %04x %04x %04x\n", int_abuf, int_xbuf, int_dbuf, int_audctl, CDIC_ABUF, CDIC_XBUF, CDIC_DBUF, CDIC_AUDCTL);
 	int_abuf = 0;
 	int_xbuf = 0;
 	int_dbuf = 0;
@@ -60,12 +59,6 @@ void *__inline_va_start__(void);
 
 void print(char *format, ...)
 {
-#if 1
-	_VA_LIST args;
-	va_start(args, format);
-	vprintf(format, args);
-	va_end(args);
-#endif
 }
 
 /* Overwrite CDIC driver IRQ handling */
@@ -75,17 +68,6 @@ void take_system()
 	store_a6();
 
 	CDIC_IVEC = 0x2480;
-	/* Only in SUPERVISOR mode, on-chip peripherals can be configured */
-	/* We abuse a CDIC IRQ to set the baud rate to 19200 */
-	*((unsigned long *)0x200) = SET_UART_BAUD; /* vector delivered by CDIC */
-	cdic_irq_occured = 0;
-	CDIC_CMD = 0x2e;	/* Command = Update */
-	CDIC_DBUF = 0xc000; /* Execute command */
-	while (!cdic_irq_occured)
-		;
-
-	cdic_irq_occured = 0;
-
 	/* Switch to actual IRQ handler */
 	*((unsigned long *)0x200) = CDIC_IRQ; /* vector delivered by CDIC */
 
@@ -109,7 +91,6 @@ void example_crc_calculation()
 	}
 
 	/* 0xffff is expected */
-	printf("CRC Result %x\n", crc_accum);
 }
 
 void test_cmd23()
@@ -252,9 +233,9 @@ char *argv[];
 	int wait;
 	int framecnt = 0;
 
-	take_system();
+	/* print("Hello CDIC!\n"); */
 
-	print("Hello CDIC!\n");
+	take_system();
 
 	example_crc_calculation();
 
@@ -290,7 +271,6 @@ char *argv[];
 	test_audiomap_play_stop();
 
 	resetcdic();
-	printf("\nTest finished. Press Ctrl-C to reset!\n");
 	for (;;)
 		;
 

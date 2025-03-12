@@ -56,12 +56,9 @@ void print_reg_buffer()
 	int i, j;
 	for (i = 0; i < bufpos; i++)
 	{
-		print("%3d ", i);
 		for (j = 0; j < 10; j++)
 		{
-			print(" %04x", reg_buffer[i][j]);
 		}
-		print("\n");
 	}
 }
 
@@ -71,8 +68,6 @@ void print_reg_buffer()
  */
 void test_audiomap_play_stop()
 {
-	printf("# test_audiomap_play_stop()\n");
-
 	resetcdic();
 
 	/* [:cdic] Coding 05, 2 channels, 4 bits, 000049d4 frequency -> 106 ms between IRQs */
@@ -87,7 +82,6 @@ void test_audiomap_play_stop()
 	memcpy((char *)0x30280c, RibbitSoundData, 2304);
 	memcpy((char *)0x30320c, RibbitSoundData + 2304, 2304);
 
-	print("Start audiomap and stop it with 0xff coding\n");
 	CDIC_AUDCTL = 0x2800;
 
 	observe_audiomap_registers(6, 1);
@@ -121,7 +115,6 @@ void test_audiomap_play_stop()
 	Bit 15 of XBUF is also set. But why? There should be no CD reading.
 	*/
 
-	print("Start audiomap again with 0xff coding\n");
 	CDIC_AUDCTL = 0x2800;
 	bufpos = 0;
 	observe_audiomap_registers(12, 3);
@@ -140,8 +133,6 @@ void test_audiomap_play_stop()
  */
 void test_audiomap_play_abort()
 {
-	printf("# test_audiomap_play_abort()\n");
-
 	resetcdic();
 
 	/* [:cdic] Coding 05, 2 channels, 4 bits, 000049d4 frequency -> 106 ms between IRQs */
@@ -154,7 +145,6 @@ void test_audiomap_play_abort()
 	memcpy((char *)0x30280c, RibbitSoundData, 2304);
 	memcpy((char *)0x30320c, RibbitSoundData + 2304, 2304);
 
-	print("Start audiomap and abort it during playback\n");
 	CDIC_AUDCTL = 0x2800;
 
 	observe_audiomap_registers(6, 1);
