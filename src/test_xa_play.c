@@ -58,15 +58,15 @@ void test_xa_play()
 
     /* Zelda - Wand of Gamelon - Map Theme*/
     CDIC_FILE = 0x0100;     /* MODE2 File filter */
-    CDIC_CHAN = 0x0001;     /* MODE2 Channel filter Select which sectors to handle at all */
-    CDIC_ACHAN = 0x0001;    /* Without this, the sectors will be written to data buffers */
-    CDIC_TIME = 0x24362100; /* MSF 24:36:21 */
+    CDIC_CHAN = 0x0002;     /* Just give us all the channels */
+    CDIC_ACHAN = 0x0002;    /* Without this, the sectors will be written to data buffers */
+    CDIC_TIME = 0x00455200; /* MSF 01:42:67 */
     CDIC_CMD = CMD_MODE2;   /* Command = Read MODE2 */
     CDIC_DBUF = 0xc000;     /* Execute command */
 
     bufpos = 0;
     timecnt = 0;
-    while (bufpos < 90)
+    while (bufpos < 30)
     {
         if (cdic_irq_occured)
         {
@@ -155,9 +155,9 @@ void test_xa_channel_change()
 
     /* Tetris - Menu Theme when game is booted */
     CDIC_FILE = 0x0100;     /* MODE2 File filter */
-    CDIC_CHAN = 0x0001;     /* Just give us all the channels */
-    CDIC_ACHAN = 0x0001;    /* Without this, the sectors will be written to data buffers */
-    CDIC_TIME = 0x01426700; /* MSF 01:42:67 */
+    CDIC_CHAN = 0x0010;     /* Just give us all the channels */
+    CDIC_ACHAN = 0x0010;    /* Without this, the sectors will be written to data buffers */
+    CDIC_TIME = 0x04040800; /* MSF 01:42:67 */
     CDIC_CMD = CMD_MODE2;   /* Command = Read MODE2 */
     CDIC_DBUF = 0xc000;     /* Execute command */
 

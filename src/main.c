@@ -286,8 +286,10 @@ char *argv[];
 	test_audiomap_play_stop();
 	test_cmd23();
 	test_cmd24();
+	test_audiomap_to_xa_play(0);
+
 	*/
-	test_audiomap_play_stop();
+	test_xa_play();
 
 	resetcdic();
 	printf("\nTest finished. Press Ctrl-C to reset!\n");

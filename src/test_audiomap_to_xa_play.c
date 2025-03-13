@@ -2,6 +2,8 @@
 #include "framework.h"
 #include "ribbit_sample.h"
 
+int state = 0;
+
 static void collect_registers()
 {
 
@@ -20,6 +22,7 @@ static void collect_registers()
     reg_buffer[bufpos][11] = CDIC_AUDCTL;
 
     reg_buffer[bufpos][12] = timecnt;
+    reg_buffer[bufpos][13] = state;
 }
 
 /* Evaluates behavior during the Help cutscene of "Zelda - Wand of Gamelon".
@@ -53,7 +56,7 @@ void test_audiomap_to_xa_play(int mode)
     CDIC_AUDCTL = 0x2800;
     bufpos = 0;
     timecnt = 0;
-    while (bufpos < 10)
+    while (bufpos < 11)
     {
         if (cdic_irq_occured)
         {
@@ -75,22 +78,23 @@ void test_audiomap_to_xa_play(int mode)
     }
 #endif
 
-#if 0
-	/* Gracefully stop audiomap with 0xff coding */
-	*((unsigned short *)0x30280a) = 0x00ff;
-	*((unsigned short *)0x30320a) = 0x00ff;
+#if 1
+    /* Gracefully stop audiomap with 0xff coding */
+    *((unsigned short *)0x30280a) = 0x00ff;
+    *((unsigned short *)0x30320a) = 0x00ff;
 #endif
     /* CDIC_AUDCTL = 0; */
 
     /* Zelda - Demo cutscene - "Remember, tools can only be used when I'm standing up." */
     CDIC_FILE = 0x0100;                  /* MODE2 File filter */
-    CDIC_CHAN = 0x0010;                  /* Just give us all the channels */
-    CDIC_ACHAN = mode ? 0x0010 : 0x0000; /* Without this, the sectors will be written to data buffers */
-    CDIC_TIME = 0x04040800;              /* MSF 01:42:67 */
+    CDIC_CHAN = 0x0002;                  /* Just give us all the channels */
+    CDIC_ACHAN = 0x0000; /* Without this, the sectors will be written to data buffers */
+    CDIC_TIME = 0x00455200;              /* MSF 01:42:67 */
     CDIC_CMD = CMD_MODE2;                /* Command = Read MODE2 */
     CDIC_DBUF = 0xc000;                  /* Execute command */
+    state = 0;
 
-    while (bufpos < 20)
+    while (bufpos < 30)
     {
         if (cdic_irq_occured)
         {
@@ -108,6 +112,21 @@ void test_audiomap_to_xa_play(int mode)
                 CDIC_ACHAN = 0x0010; /* Without this, the sectors will be written to data buffers */
                 CDIC_CMD = CMD_UPDATE;
                 CDIC_DBUF = 0xc000; /* Execute command */
+            }
+#endif
+#if 1
+            if (state == 0 && CDIC_RAM_DBUF0[0] != 0xffc0 && int_xbuf & 0x8000)
+            {
+                /* CDIC_AUDCTL = 0x0800; */
+                CDIC_ACHAN = 0x0002; /* Without this, the sectors will be written to data buffers */
+                CDIC_CMD = CMD_UPDATE;
+                CDIC_DBUF |= 0x8000; /* Execute command */
+                state = 1;
+            }
+            else if (state == 1 && (int_xbuf & 0x8000) && (int_audctl & 0x0800) == 0 && CDIC_ACHAN == 0x0002)
+            {
+                CDIC_AUDCTL = 0x0800;
+                state = 2;
             }
 #endif
 
@@ -142,7 +161,7 @@ void test_audiomap_to_xa_play(int mode)
     for (i = 0; i < bufpos; i++)
     {
         printf("%3d ", i);
-        for (j = 0; j < 13; j++)
+        for (j = 0; j < 14; j++)
         {
             printf(" %04x", reg_buffer[i][j]);
         }
