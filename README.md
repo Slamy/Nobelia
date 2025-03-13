@@ -8,7 +8,6 @@ Clone https://github.com/TwBurn/cdi-sdk and have it mounted as D: drive in winec
 
 Get [tocs12.zip](http://www.icdia.co.uk/sw_pc/vcdtools.html) if you want to convert
 the resulting image to CUE/BIN for usage with MAME and MiSTer.
-It is expected to have tocsplit.exe in the root of this project.
 
 ### Compiling
 
@@ -23,13 +22,6 @@ It is expected to have tocsplit.exe in the root of this project.
 	dosbox master.bat -exit
 
 The resulting image can be loaded into cdiemu
-
-### Conversion into CUE/BIN
-
-You need to do that to use the image in MAME. Keep in mind that the tool
-requires mouse control.
-
-	wine tocsplit.exe
 
 ### Compiling, mastering and CUE/BIN conversion in one step
 
