@@ -118,7 +118,9 @@ void runProgram()
 	char *video2_buf = (char *)srqcmem(30000, VIDEO2);
 	char *sysrom_mem = (char *)0x400000;
 	char *dvcrom_mem = (char *)0xe40000;
-
+	unsigned int timep1;
+	unsigned int timep2;
+	unsigned int timep3;
 	dc_ssig(videoPath, SIG_BLANK, 0);
 
 	while (!exit_app)
@@ -234,6 +236,22 @@ void runProgram()
 			opcnt_da1++;
 		}
 		printf("Copy DVCROM %d %d\n", opcnt_da0, opcnt_da1);
+
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		timep1 = FMA_DCLK;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+			;
+		timep2 = FMA_DCLK;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		timep3 = FMA_DCLK;
+
+		printf("FMA DCLK %d %d\n\n", timep2 - timep1, timep3 - timep2);
+		/* An output of 94 804 on 210/05 seems plausible */
+		/* The total tick count for one frame should be 900 at 50 Hz */
+		/* 280 lines would be 808 ticks */
+
 	}
 }
 
