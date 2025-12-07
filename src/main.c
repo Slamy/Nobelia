@@ -1,15 +1,16 @@
-#define NODEVELOP
 
 #include <csd.h>
 #include <sysio.h>
 #include <ucm.h>
 #include <events.h>
-
 #include <setsys.h>
+#include <signal.h>
+#include <memory.h>
 
 #include "input.h"
 #include "video.h"
 #include "graphics.h"
+#include "hwreg.h"
 
 #define LCT_ROW_START 2
 
@@ -44,16 +45,19 @@ int sig_occured = 0;
 int performed_writes = 0;
 unsigned long int samples[100];
 int sample_index = 0;
+int exit_app = 0;
 
 int intHandler(sigCode)
 int sigCode;
 {
-	if (sigCode == SIG_BLANK)
+	if (sigCode == SIGINT)
 	{
-		if (sample_index < 80)
-			samples[sample_index++] = performed_writes;
-		frameTick++;
-		sig_occured = 1;
+		printf("SIGINT!\n");
+		exit_app = 1;
+	}
+	else if (sigCode == SIG_BLANK)
+	{
+		printf("Not expected!\n");
 		dc_ssig(videoPath, SIG_BLANK, 0);
 	}
 }
@@ -66,16 +70,15 @@ void initProgram()
 
 	dc_wrli(videoPath, lctA, 2, 0, cp_cbnk(0));
 	dc_wrli(videoPath, lctA, 2, 1, cp_clut(5, 255, 0, 0));
-	dc_wrli(videoPath, lctA, 2, 2, cp_sig());
+	dc_wrli(videoPath, lctA, 2, 2, cp_nop());
 
 	dc_wrli(videoPath, lctA, 279, 0, cp_cbnk(0));
 	dc_wrli(videoPath, lctA, 279, 1, cp_clut(5, 255, 0, 255));
-	dc_wrli(videoPath, lctA, 279, 2, cp_sig());
-
+	dc_wrli(videoPath, lctA, 279, 2, cp_nop());
 
 	dc_wrli(videoPath, lctA, 279 * 2, 0, cp_cbnk(0));
 	dc_wrli(videoPath, lctA, 279 * 2, 1, cp_clut(5, 255, 0, 0));
-	dc_wrli(videoPath, lctA, 279 * 2, 2, cp_sig());
+	dc_wrli(videoPath, lctA, 279 * 2, 2, cp_nop());
 
 #endif
 	setIcf(ICF_MAX, ICF_MAX);
@@ -98,20 +101,139 @@ void closeSystem()
 
 int scratch;
 
+int number_a = 42;
+int number_b = 100;
+int number_c;
+int opcnt_da1 = 0;
+int opcnt_da0 = 0;
+
+#define MCD212_CDSR1_DA 0x80
+
 void runProgram()
 {
 	int i;
+
+	char *sysram_buf = (char *)srqcmem(30000, SYSRAM);
+	char *video1_buf = (char *)srqcmem(30000, VIDEO1);
+	char *video2_buf = (char *)srqcmem(30000, VIDEO2);
+	char *sysrom_mem = (char *)0x400000;
+	char *dvcrom_mem = (char *)0xe40000;
+
 	dc_ssig(videoPath, SIG_BLANK, 0);
 
-	while (sample_index < 80)
+	while (!exit_app)
 	{
-		performed_writes++;
-		scratch = scratch + 1;
-	}
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			number_c = number_a * number_b;
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			number_c = number_a * number_b;
+			opcnt_da1++;
+		}
+		printf("Multi %d %d\n", opcnt_da0, opcnt_da1);
 
-	for (i = 0; i < sample_index - 1; i++)
-	{
-		printf("%d\n", samples[i + 1] - samples[i]);
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			number_c = number_a + number_b;
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			number_c = number_a + number_b;
+			opcnt_da1++;
+		}
+		printf("Add %d %d\n", opcnt_da0, opcnt_da1);
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			number_c = number_a / number_b;
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			number_c = number_a / number_b;
+			opcnt_da1++;
+		}
+		printf("Div %d %d\n", opcnt_da0, opcnt_da1);
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			video1_buf[opcnt_da0] = video2_buf[opcnt_da0];
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			video1_buf[opcnt_da1] = video2_buf[opcnt_da1];
+			opcnt_da1++;
+		}
+		printf("Copy VRAM %d %d\n", opcnt_da0, opcnt_da1);
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			sysram_buf[opcnt_da0] = video2_buf[opcnt_da0];
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			sysram_buf[opcnt_da1] = video2_buf[opcnt_da1];
+			opcnt_da1++;
+		}
+		printf("Copy SYSRAM %d %d\n", opcnt_da0, opcnt_da1);
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			sysram_buf[opcnt_da0] = sysrom_mem[opcnt_da0];
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			sysram_buf[opcnt_da1] = sysrom_mem[opcnt_da1];
+			opcnt_da1++;
+		}
+		printf("Copy SYSROM %d %d\n", opcnt_da0, opcnt_da1);
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			sysram_buf[opcnt_da0] = dvcrom_mem[opcnt_da0];
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			sysram_buf[opcnt_da1] = dvcrom_mem[opcnt_da1];
+			opcnt_da1++;
+		}
+		printf("Copy DVCROM %d %d\n", opcnt_da0, opcnt_da1);
 	}
 }
 
@@ -124,5 +246,6 @@ char *argv[];
 	initSystem();
 	runProgram();
 	closeSystem();
+	sleep(1);
 	exit(0);
 }

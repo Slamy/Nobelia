@@ -1,25 +1,34 @@
 # Nobelia
 
 Real 210/05
-427
-429
-57
 
-Turbo
-737
-749
-304
+	Copy VRAM 139 910
+	Copy SYSRAM 110 923
+	Copy SYSROM 106 927
+	Copy DVCROM 102 931
+	Multi 29 276
+	Add 121 917
+	Div 31 241
 
-Normal
-352
-377
-171
+MiSTer Normal
 
-Normal Nochmal
-527
-555
-61
+	Copy VRAM 206 1010
+	Copy SYSRAM 206 1011
+	Copy SYSROM 205 1011
+	Copy DVCROM 205 1011
+	Multi 72 368
+	Add 186 919
+	Div 52 253
 
+MiSTer Turbo
+
+	Copy VRAM 362 1521
+	Copy SYSRAM 362 1521
+	Copy SYSROM 362 1521
+	Copy DVCROM 362 1521
+	Multi 126 551
+	Add 328 1372
+	Div 91 381
 
 
 ## Compiling under Linux
@@ -63,7 +72,7 @@ requires mouse control.
 This approach is crude and might not work on all machines.
 It makes use of xdotool to automate button presses.
 
-	./make_image.sh 
+	./make_image.sh
 
 ### Start image on MAME
 
@@ -81,7 +90,7 @@ It makes use of xdotool to automate button presses.
 
 ## CD-i Game by Jeffrey Janssen - nobelia@nmotion.nl
 
-This is the Open Source version of Nobelia. 
+This is the Open Source version of Nobelia.
 - The source code is identical to the released version.
 - Licensed music is not included in this version, all in-game music tracks are replaced by "The Traveller"
 - The source code and assets in this repository are meant for personal and/or educational use only
