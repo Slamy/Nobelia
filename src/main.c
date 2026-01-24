@@ -3,6 +3,7 @@
 #include <sysio.h>
 #include <ucm.h>
 #include <events.h>
+#include <errno.h>
 #include <setsys.h>
 #include <signal.h>
 #include <memory.h>
@@ -109,6 +110,8 @@ int opcnt_da0 = 0;
 
 #define MCD212_CDSR1_DA 0x80
 
+DrawmapDesc *dfg[2];
+
 void runProgram()
 {
 	int i;
@@ -123,8 +126,61 @@ void runProgram()
 	unsigned int timep3;
 	dc_ssig(videoPath, SIG_BLANK, 0);
 
+	dfg[0] = dm_create(videoPath, PA, D_CLUT7, 768, 1140, 0, 0);
+	dfg[1] = dm_create(videoPath, PB, D_CLUT7, 768, 1140, 0, 0);
+
+	if (dfg[0])
+	{
+		int res, i;
+
+		for (i = 0; i < 2; i++)
+		{
+			res = dp_scr(videoPath, dfg[i]->dm_dnum, 0, 1);
+			printf("Jo! %d %d\n", res, errno);
+			res = dr_circ(videoPath, dfg[i]->dm_dnum, 0, 50, 50, 10);
+			printf("Jo! %d %d\n", res, errno);
+		}
+	}
+	else
+	{
+		printf("No %d\n", dfg);
+	}
+
 	while (!exit_app)
 	{
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			dr_circ(videoPath, dfg[i]->dm_dnum, 0, 50, 50, 10);
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			dr_circ(videoPath, dfg[i]->dm_dnum, 0, 50, 50, 10);
+			opcnt_da1++;
+		}
+		printf("dr_circ %d %d\n", opcnt_da0, opcnt_da1);
+
+		opcnt_da0 = 0;
+		opcnt_da1 = 0;
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+			;
+		while ((MCD212_CSR1R & MCD212_CDSR1_DA) == 0)
+		{
+			dc_wrli(videoPath, lctB, 0, 7, cp_icf(PB, curIcfB));
+			opcnt_da0++;
+		}
+		while (MCD212_CSR1R & MCD212_CDSR1_DA)
+		{
+			dc_wrli(videoPath, lctB, 0, 7, cp_icf(PB, curIcfB));
+			opcnt_da1++;
+		}
+		printf("dc_wrli %d %d\n", opcnt_da0, opcnt_da1);
+
 		opcnt_da0 = 0;
 		opcnt_da1 = 0;
 		while (MCD212_CSR1R & MCD212_CDSR1_DA)
@@ -189,6 +245,7 @@ void runProgram()
 		}
 		printf("Copy VRAM %d %d\n", opcnt_da0, opcnt_da1);
 
+#ifdef DVC
 		opcnt_da0 = 0;
 		opcnt_da1 = 0;
 		while (MCD212_CSR1R & MCD212_CDSR1_DA)
@@ -248,10 +305,11 @@ void runProgram()
 		timep3 = FMA_DCLK;
 
 		printf("FMA DCLK %d %d\n\n", timep2 - timep1, timep3 - timep2);
+#endif
+
 		/* An output of 94 804 on 210/05 seems plausible */
 		/* The total tick count for one frame should be 900 at 50 Hz */
 		/* 280 lines would be 808 ticks */
-
 	}
 }
 

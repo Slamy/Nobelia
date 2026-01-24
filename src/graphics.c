@@ -2,9 +2,9 @@
 #include <ucm.h>
 #include <stdio.h>
 #include <memory.h>
+#include <errno.h>
 #include "video.h"
 #include "graphics.h"
-
 
 u_char *paCursor;
 u_char *pbBackground;

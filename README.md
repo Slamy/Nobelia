@@ -2,6 +2,8 @@
 
 Real 210/05
 
+	dr_circ 4 27
+	dc_wrli 3 21
 	Multi 32 282
 	Add 129 908
 	Div 34 239
@@ -13,6 +15,8 @@ Real 210/05
 
 MiSTer Normal
 
+	dr_circ 7 30
+	dc_wrli 6 23
 	Multi 73 367
 	Add 188 918
 	Div 52 253
@@ -23,8 +27,6 @@ MiSTer Normal
 	FMA DCLK 81 818
 
 MiSTer Turbo
-
-
 
 ## Compiling under Linux
 
